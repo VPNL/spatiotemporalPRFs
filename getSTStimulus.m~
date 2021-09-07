@@ -5,12 +5,11 @@
 % input:
 % params.stim.images_unconvolved: This is the output of the mrVista rmMakeStimulus.m function
 % params.stim.instimwindow: Grab pixels where stimulus was actully presented
-% this is to only compute pixels where the stimulus was presented (saves computational resources)
 % stimulusNumber: index of the stimulus that is being grabbed
 
 % Return values:
-% stim: [Time(ms) X pixels]
-% keep: [pixels]
+% stim: % [210000 2917]
+% keep: to only compute pixels where the stimulus was presented (saves computational resources)
 
 % note: for more information check rmMakeStimulus.m
 
