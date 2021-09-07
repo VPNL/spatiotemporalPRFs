@@ -68,29 +68,14 @@ for s = 1:length(params.stim)
             end
             
             %% 5. Get RF
-            % TODO: rf = getPRF(params); 
-            % rf is x-pixels by y-pixels (in deg)
+            % Requires: 
+            % * params.analysis.fieldSize
+            % * params.analysis.sampleRate
+            % * params.analysis.spatial.x, y, sigmaMajor, sigmaMinor, theta
+            [prfs, params] = getPRF(params); % rf is x-pixels by y-pixels (in deg)
 
-            % Subfunction description: Function should take spatial model 
-            % as input to get either standard 2D Gaussian or CSS 2D Gaussian
-        
-            % Within this function we should be getting the grid, see old code:
-            % XYGrid = -params.analysis.fieldSize:params.analysis.sampleRate:params.analysis.fieldSize;
-            % [x,y]=meshgrid(XYGrid,XYGrid); clear XYGrid
- 
-%             rf = pmGaussian2d(params.spatial.model, ...
-%                 params.analysis.spatial.sigmaMajor(n), ...
-%                 params.analysis.spatial.sigmaMinor(n), ...
-%                 params.analysis.spatial.theta(n), ...
-%                 params.analysis.spatial.x0(n), ...
-%                 params.analysis.spatial.y0(n), ...
-%                 params.analysis.spatial.exponent(n));
-
-            % Remove no stim pixels
-%             rf=double(rf(keep));
-            
             %% 6. Compute RF X Stim
-            % TODO: rfResponse = getPRFResponse(stim, rf);
+            % TODO: rfResponse = getPRFResponse(stim, prf);
             
             % Subfunction description: get time course for given pRF and
             % stimulus
