@@ -1,7 +1,8 @@
 function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
-% rfGaussian2d - Create a two dimensional Gaussian receptive field
+% pmGaussian2d - Create a two dimensional Gaussian receptive field,
+% this function is inherited from vistasoft/PRFmodel
 %
-%  RF = rfGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta,x0,y0);
+%  RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta,x0,y0);
 %
 %    X,Y        : Sample positions in deg
 %    sigmaMajor : standard deviation longest direction
@@ -21,45 +22,36 @@ function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
 %    y = x;
 %    [X,Y] = meshgrid(x,y);
 %    sigma = 5;  % Deg
-%    rf = rfGaussian2d(X,Y,sigma);
+%    rf = pmGaussian2d(X,Y,sigma);
 % 
 
-% Programming notes:
-%  Maybe we should always make sure we use an odd number of samples and
-%  have a sample at the origin
-
-% According to profile half of the executing time for the function
-% is spend at notDefined, and this functions is called lots (it
-% is the slowest part in rmMain together with rfMakePrediction),   so
-% if it seems that all arguments are given just skip it.
-% ras 08/06: well, we can do what Bob does: not call it at all anyway.
-if nargin ~= 7,
+if nargin ~= 7
     if ~exist('X', 'var') || isempty(X),
         error('Must define X grid');
-    end;
+    end
 
     if ~exist('Y', 'var') || isempty(Y),
         error('Must define Y grid');
-    end;
+    end
 
     if ~exist ('sigmaMajor', 'var') || isempty(sigmaMajor),
         error('Must scale on major axis');
-    end;
+    end
 
     if ~exist ('sigmaMinor', 'var') || isempty(sigmaMinor),
         sigmaMinor = sigmaMajor;
-    end;
+    end
 
-    if ~exist ('theta', 'var') || isempty(theta), theta = false; end;
-    if ~exist ('x0', 'var') || isempty(x0),       x0 = 0;    end;
-    if ~exist ('y0', 'var') || isempty(y0),       y0 = 0;    end;
-end;
+    if ~exist ('theta', 'var') || isempty(theta), theta = false; end
+    if ~exist ('x0', 'var') || isempty(x0),       x0 = 0;    end
+    if ~exist ('y0', 'var') || isempty(y0),       y0 = 0;    end
+end
 
 
 % Allow sigma, x,y to be a matrix so that the final output will be
 % size(X,1) by size(x0,2). This way we can make many RFs at the same time.
 % Here I assume that all parameters are given.
-if numel(sigmaMajor)~=1,
+if numel(sigmaMajor)~=1
     sz1 = numel(X);
     sz2 = numel(sigmaMajor);
 
@@ -69,13 +61,13 @@ if numel(sigmaMajor)~=1,
     sigmaMajor = repmat(sigmaMajor(:)',sz1,1);
     sigmaMinor = repmat(sigmaMinor(:)',sz1,1);
 
-    if any(theta(:)),
+    if any(theta(:))
         theta = repmat(theta(:)',sz1,1);
-    end;
+    end
 
     x0 = repmat(x0(:)',sz1,1);
     y0 = repmat(y0(:)',sz1,1);
-end;
+end
 
 % Save the original sample positions
 Xorig = X;
@@ -85,19 +77,17 @@ Yorig = Y;
 X = X - x0;   % positive x0 moves center right
 Y = Y - y0;   % positive y0 moves center up
 
-
 % Rotate grid around the RF center, positive theta rotates the
 % grid to the right. No need for this if theta is 0.
-if any(theta(:)),
+if any(theta(:))
     Xold = X;
     Yold = Y;
     X = Xold .* cos(theta) - Yold .* sin(theta);
     Y = Xold .* sin(theta) + Yold .* cos(theta);
-end;
+end
 
 % Make gaussian on current grid
 RF  = exp( -.5 * ((Y ./ sigmaMajor).^2 + (X ./ sigmaMinor).^2));
-
 
 
 % Normalize the Gaussian.
@@ -107,7 +97,6 @@ RF  = exp( -.5 * ((Y ./ sigmaMajor).^2 + (X ./ sigmaMinor).^2));
 
 % This will give a volume of 1, rergardless of sampling, for all cases
 RF = RF ./ (sigmaMajor .* 2 .* pi .* sigmaMinor);
-
 
 % From now on, new (GLU 2020-01-31)
 % We want the area to be 1.
@@ -128,6 +117,7 @@ sampleRate = Yorig(2,1) - Yorig(1,1);
 fieldRange = maxVal - minVal + sampleRate;
 Xfull = Xorig;
 Yfull = Yorig;
+
 % --- Calculate how big the mesh needs to be for a full RF
 xlimit = sigmaMajorLimit * sigmaMajor;
 tmpx   = Yfull(:,1);
@@ -136,6 +126,7 @@ while xlimit > max(tmpx)
     fieldRange = 1.1*fieldRange;
     tmpx       = [-fieldRange:sampleRate:fieldRange];
 end
+
 % - Now that we know that the grid can hold the full RF
 %   Calculate the full RF and calculate the area underneath it
 tmpy = tmpx;
@@ -150,17 +141,5 @@ sRFfull = sum(RFfull(:));
 % - Normalize our RF with the full RF value we just obtained
 RF  = RF ./ sRFfull;
 
-
-% 
-% for si =1: size(sigmaMajor,2)
-%     RFfull = exp( -.5 * ((Yfull ./ sigmaMajor(:,si)).^2 + (Xfull ./ sigmaMinor(:,si)).^2));
-%     
-%     RFfull = RFfull ./ (sigmaMajor(:,si) .* 2 .* pi .* sigmaMinor(:,si));
-%     % - Calculate the full RF area
-%     sRFfull = sum(RFfull(:));
-%     
-%     % - Normalize our RF with the full RF value we just obtained
-%     RF(:,si)  = RF(:,si) ./ sRFfull;
-% end
 
 end
