@@ -16,6 +16,9 @@ function predictions = stPredictBOLDFromStim(params)
 %                       variance explained, exponent, etc.
 
 %% 0. Get temporal parameters
+% load temporal params,
+params = getTemporalParams(params);
+
 % TODO: params = getTemporalParams(params)
 
 % Subfunction description: Take params and return back with the 5 t params,
@@ -45,6 +48,7 @@ for s = 1:length(params.stim)
         
         %% 3. Get stimulus
         % TODO: [stim, keep] = getStimulus(params); % see old code params.stim(s).images_unconvolved';
+        [stim,keep] = getSTStimulus(params,stimulusNumber);
         
         % Subfunction description: load stimulus images later used by
         % st_tModel.m, and define pixels that have a stimulus to save computational resources
