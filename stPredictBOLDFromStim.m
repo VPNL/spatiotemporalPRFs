@@ -19,6 +19,11 @@ function predictions = stPredictBOLDFromStim(params)
 % load temporal params,
 params = getTemporalParams(params);
 
+% TODO: params = getTemporalParams(params)
+
+% Subfunction description: Take params and return back with the 5 t params,
+% fs, numChannels, TR (seconds) as fields of params.analysis.temporal.[...] 
+
 %% 1. Define hrf
 hrf = canonical_hrf(1 / fs, [5 14 28]);
 
@@ -44,6 +49,7 @@ for s = 1:length(params.stim)
         %% 3. Get stimulus
         % TODO: [stim, keep] = getStimulus(params); % see old code params.stim(s).images_unconvolved';
         [stim,keep] = getSTStimulus(params,stimulusNumber);
+        
         % Subfunction description: load stimulus images later used by
         % st_tModel.m, and define pixels that have a stimulus to save computational resources
         % see old code: keep = params.stim.instimwindow;
