@@ -22,10 +22,17 @@ function [prfs, params] = getPRFs(params, varargin)
 %                  'unitVolume' (default).
 %           * [params.analysis.spatial.trimRFFlag] - (bool) if we want to
 %                   truncate the RF at 5 SD or not, only for 'unitHeight' pRFs.
+%           * [keepPixels] - (logical) matrix or vector with dimensions stim x by stim y.
+%                   if a pixel is true, then it falls within our stimulus
+%                   window and we keep it to generate pRF responses. If a
+%                   pixel is false, it falls outside the stimulus window
+%                   and we remove it to save computational resources.
 %
 % OUTPUT:
-% prf       : (double) matrix with [x-pixels by y-pixels (in deg)] by nr of
+% prfs    : (double) matrix with [x-pixels by y-pixels (in deg)] by nr of
 %               pRFs
+% Written by ERK 2021 @ VPNL Stanford U
+
 %% Check inputs
 if nargin > 1
     keepPixels = varargin{1};
@@ -39,7 +46,7 @@ if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.s
 end
 
 % Get the support grid for the pRF:
-if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)    
+if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
     XYGrid = -params.analysis.spatial.fieldSize:params.analysis.spatial.sampleRate:params.analysis.spatial.fieldSize;
     [X,Y]  = meshgrid(XYGrid,XYGrid);
     
@@ -61,58 +68,62 @@ if ~isfield(params.analysis.spatial,'theta')
     params.analysis.spatial.theta = zeros(size(params.analysis.spatial.sigmaMajor));
 end
 
+% Assume we want to trim edges of pRF
+if ~isfield(params.analysis.spatial,'trimRFFlag')
+    params.analysis.spatial.trimRFFlag = true;
+end
+
 %% Get num of voxels and loop over them to create pRFs
 numVoxels = length(params.analysis.spatial.sigmaMajor);
 
-for n = 1:numVoxels
-    switch params.analysis.spatial.pRFModelType
-        case 'unitVolume'
-            % This function normalizes the volume under the 2D gaussian and
-            % truncates pRF at 5 SD. All pRFs will have a volume of 1 (or close
-            % to 1)
-            rf = pmGaussian2d(...
-                params.analysis.spatial.X, ...
-                params.analysis.spatial.Y, ...
-                params.analysis.spatial.sigmaMajor(n), ...
-                params.analysis.spatial.sigmaMinor(n), ...
-                params.analysis.spatial.theta(n), ...
-                params.analysis.spatial.x0(n), ...
-                params.analysis.spatial.y0(n));
-            
-        case 'unitHeight'
-            % This function does NOT normalize the volume under the 2D gaussian
-            % and does NOT truncate pRF at 5 SD. All pRFs will have a height
-            % of 1.
-            rf = rfGaussian2d(...
-                params.analysis.spatial.X, ...
-                params.analysis.spatial.Y, ...
-                params.analysis.spatial.sigmaMajor(n), ...
-                params.analysis.spatial.sigmaMinor(n), ...
-                params.analysis.spatial.theta(n), ...
-                params.analysis.spatial.x0(n), ...
-                params.analysis.spatial.y0(n));
-            
+switch params.analysis.spatial.pRFModelType
+    case 'unitVolume'
+        % This function normalizes the volume under the 2D gaussian and
+        % truncates pRF at 5 SD. All pRFs will have a volume of 1 (or close
+        % to 1)
+        prfs = pmGaussian2d(...
+            params.analysis.spatial.X, ...
+            params.analysis.spatial.Y, ...
+            params.analysis.spatial.sigmaMajor, ...
+            params.analysis.spatial.sigmaMinor, ...
+            params.analysis.spatial.theta, ...
+            params.analysis.spatial.x0, ...
+            params.analysis.spatial.y0);
+        
+    case 'unitHeight'
+        % This function does NOT normalize the volume under the 2D gaussian
+        % and does NOT truncate pRF at 5 SD. All pRFs will have a height
+        % of 1.
+        prfs = rfGaussian2d(...
+            params.analysis.spatial.X, ...
+            params.analysis.spatial.Y, ...
+            params.analysis.spatial.sigmaMajor, ...
+            params.analysis.spatial.sigmaMinor, ...
+            params.analysis.spatial.theta, ...
+            params.analysis.spatial.x0, ...
+            params.analysis.spatial.y0);
+        
+        for n = 1:numVoxels
             if params.analysis.spatial.trimRFFlag
                 % Mask RF at 5 sd to remove trailing edge
                 SDcutoff = 5;
                 % Define radius
                 r = (params.analysis.spatial.sigmaMajor(n)*SDcutoff)./params.analysis.spatial.sampleRate;
-                ctr = 1+(max(params.analysis.spatial.X(:))/sampleRes);
-                center = ctr + [params.analysis.spatial.y0;params.analysis.spatial.x0]./params.analysis.spatial.sampleRate;
+                ctr = 1+(max(params.analysis.spatial.X(:))/params.analysis.spatial.sampleRate);
+                center = ctr + [params.analysis.spatial.y0(n);params.analysis.spatial.x0(n)]./params.analysis.spatial.sampleRate;
                 
-                mask = logical(makecircleimage(sqrt(size(rf,1)),r, [],[],[],[],center));
-                rf = rf.*mask(:);
+                thisRF = reshape(prfs(:,n),[sqrt(size(prfs,1)),sqrt(size(prfs,1))]);
+                mask = logical(makecircleimage(size(thisRF,1),r, [],[],[],[],center));
+                prfs(:,n) = thisRF.*mask;
             end
-    end
-    
-    % If requested, remove no stim pixels
-    if ~isempty(keepPixels)
-        rf = rf(keepPixels);
-        % Store in params
-        params.analysis.spatial.keep = keepPixels;
-    end
-    
-    prfs(:,n) = rf(:);
-    
-    
+        end
+end
+
+% If requested, remove no stim pixels
+if ~isempty(keepPixels)
+    prfs = prfs(keepPixels,:);
+    % Store in params
+    params.analysis.spatial.keep = keepPixels;
+end
+
 end
