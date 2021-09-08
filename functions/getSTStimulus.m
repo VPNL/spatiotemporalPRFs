@@ -1,23 +1,28 @@
-%% Get spatiotemporal Stimulus parameters (getSTStimulus)
-
-% Grabs stimulus and  params for each model (params.analysis.temporalModel)
-
-% input:
-% params.stim.images_unconvolved: This is the output of the mrVista rmMakeStimulus.m function
-% params.stim.instimwindow: Grab pixels where stimulus was actully presented
-% this is to only compute pixels where the stimulus was presented (saves computational resources)
-% stimulusNumber: index of the stimulus that is being grabbed
-
-% Return values:
+function [stim,keep] = getSTStimulus(params,stimulusNumber)
+%% Function to get spatiotemporal stimulus images and parameters
+%
+%   [stim,keep] = getSTStimulus(params,stimulusNumber)
+%
+% Grabs stimulus and params for each stimulus file
+%
+% INPUT: 
+% params.stim.images_unconvolved :   Aperture images [x,y,t]. Can be made
+%                                    by mrVista rmMakeStimulus.m function
+% params.stim.instimwindow       :   Pixels where stimulus was actually
+%                                    presented. This window is used to 
+%                                    save computational resources when 
+%                                    generating predictions given the
+%                                    stimulus.
+% stimulusNumber                 :   index of the stimulus being used
+%
+% OUTPUT:
 % stim: [Time(ms) X pixels]
 % keep: [pixels]
+%
+% [ISK NOTE]: for more information check rmMakeStimulus.m get stimulus and
+% keep values
 
-% note: for more information check rmMakeStimulus.m
-
-function [stim,keep] = getSTStimulus(params,stimulusNumber)
-
-% get stimulus and keep values
-stim = params.stim(stimulusNumber).images_unconvolved'; 
+stim = params.stim(stimulusNumber).images_unconvolved; % [EK]: why transpose if we can just input the correct dimension? 
 keep = params.stim.instimwindow;
 
 
