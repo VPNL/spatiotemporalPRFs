@@ -28,17 +28,19 @@ function predictions = stPredictBOLDFromStim(params)
 % Example:
 params.saveDataFlag = true;
 params.stim.images_unconvolved = ones(101*101,1000);
-params.stim.instimwindow = true(101,101);
+params.stim.sparsifyFlag = false;
 params.recomputePredictionsFlag = true;
 params.analysis.spatial.fieldSize = 12;
 params.analysis.spatial.sampleRate = 12/50;
 params.analysis.predFile = 'tmp.mat';
 params.analysis.temporalModel = '1ch-glm';
-params.analysis.spatial.x0 = 0;
-params.analysis.spatial.y0 = 0;
-params.analysis.spatial.sigmaMajor = 1;
-params.analysis.spatial.varexpl = 1;
-params.analysis.spatial.pRFModelType = 'unitVolume';
+params.analysis.spatialModel = 'onegaussianFit';
+params.analysis.spatial.x0 = [0 0];
+params.analysis.spatial.y0 = [0 0];
+params.analysis.spatial.sigmaMajor = [1 2];
+params.analysis.spatial.varexpl = [1 1];
+params.analysis.spatial.sparsifyFlag = false;
+params.analysis.spatial.normPRFStimPredFlag = true;
 predictions = stPredictBOLDFromStim(params)
 %}
 %
@@ -97,15 +99,13 @@ for s = 1:length(params.stim)
         for n=1:nVoxels
             % Print how far we are
             if mod(nVoxels,ceil(numel(params.analysis.spatial.x0)/10)) == 0
-                fprintf('[%s]: Finished %d/%d voxels) \n',mfilename,nVoxels,numel(params.analysis.spatial.x0));
+                fprintf('[%s]: Finished %d/%d voxels) \n',mfilename,nVoxels, ...
+                    numel(params.analysis.spatial.x0));
             end
  
             %% 6. Compute RF X Stim
-            % TODO: rfResponse = getPRFResponse(stim, prf);
-            
-            % Subfunction description: get time course for given pRF and
-            % stimulus
-            % see old code: full(stim*sparse(rf));
+            % Get neural pRF time course for given pRF and stimulus
+            prfResponse = getPRFStimResponse(stim, prfs, params);
           
             %% 7. Compute spatiotemporal response in milliseconds
             % TODO: predNeural(n,time,space) = getPredictedNeuralResponse(params, rfResponse)
