@@ -1,33 +1,60 @@
 function predictions = stPredictBOLDFromStim(params)
-%% INPUTS:
-% params      : struct containing:
-%               * params.saveDataFlag -- save predictions (true) or not (false)
-%               * params.stim -- struct with stimulus variables
-%                   - images_unconvolved (x,y,t)
-%               * params.recomputePredictionsFlag -- recompute (false) or load
-%                    from file (true), file name is defined in:
-%               * params.analysis
-%                   - fieldSize  -- stimulus Field of View (deg)
-%                   - sampleRate -- nr of pixels from left to right 
-%                   - predFile -- where to save or load predictedBOLD file (str)
-%                   - temporalModel (string) Choose from:
-%                      '1ch-glm','1ch-dcts','2ch-exp-sig'
-%                   - spatial -- struct with pRF params: x0,y0,sigma,
-%                       variance explained, exponent, etc.
+% Wrapper function to predict BOLD time series (% change) from stimulus, 
+% using a spatiotemporal pRF model
+%
+% INPUTS:
+% params   : struct containing:
+%            * params.saveDataFlag (bool): save predictions or not
+%            * params.stim: struct with stimulus variables
+%                - images_unconvolved (x,y,t)
+%            * params.recomputePredictionsFlag: recompute (false) or
+%              load from file (true), file name is defined in:
+%              params.analysis.predFile
+%            * params.analysis
+%                - fieldSize (int): radius stimulus field of view (deg)
+%                - sampleRate (int): nr of pixels from left to right
+%                - predFile (str): where to save/load predictedBOLD file
+%                - temporalModel (str): Choose from '1ch-glm','1ch-dcts',
+%                '2ch-exp-sig' 
+%                - spatial (struct): with pRF params x0, y0, sigma, 
+%                varexplained, exponent, pRFModelType ('unitHeight' or
+%                'unitVolume'), etc.
+%
+% OUTPUTS:
+% predictions : struct containing:
+%               * tktktktk
+% 
+%{ 
+% Example:
+params.saveDataFlag = true;
+params.stim.images_unconvolved = ones(101*101,1000);
+params.stim.instimwindow = true(101,101);
+params.recomputePredictionsFlag = true;
+params.analysis.spatial.fieldSize = 12;
+params.analysis.spatial.sampleRate = 12/50;
+params.analysis.predFile = 'tmp.mat';
+params.analysis.temporalModel = '1ch-glm';
+params.analysis.spatial.x0 = 0;
+params.analysis.spatial.y0 = 0;
+params.analysis.spatial.sigmaMajor = 1;
+params.analysis.spatial.varexpl = 1;
+params.analysis.spatial.pRFModelType = 'unitVolume';
+predictions = stPredictBOLDFromStim(params)
+%}
+%
+%
+% Written by IK and ERK 2021 @ VPNL Stanford U
 
 %% 0. Get temporal parameters
-% load temporal params,
+% Take params and return back with the 5 t params, fs, numChannels, TR (s) 
+% as fields of params.analysis.temporal.[...] 
 params = getTemporalParams(params);
 
-% TODO: params = getTemporalParams(params)
-
-% Subfunction description: Take params and return back with the 5 t params,
-% fs, numChannels, TR (seconds) as fields of params.analysis.temporal.[...] 
-
 %% 1. Define hrf
-hrf = canonical_hrf(1 / fs, [5 14 28]);
+hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
 
 %% 2. Loop over stimulus files
+predictions = struct();
 for s = 1:length(params.stim)
     
     %% 2.1 Either load 
@@ -38,42 +65,41 @@ for s = 1:length(params.stim)
         [predPath,predFileName] = fileparts(params.analysis.predFile);
         fileToLoad = strcat(predFileName,'_r',num2str(s),'.mat');
            
-        a = load(fullfile(predPath,fileToLoad));
-        predictions(s).prediction = a.prediction; clear a;
-    
+        predictions(s).prediction = load(fullfile(predPath,fileToLoad));
+
     %% 2.2 ... or compute prediction
     else
          fprintf('Computing BOLD predictions for %s model (stimulus = %d) \n', ...
             params.analysis.temporalModel, s); drawnow;
         
         %% 3. Get stimulus
-        % TODO: [stim, keep] = getStimulus(params); % see old code params.stim(s).images_unconvolved';
-        [stim,keep] = getSTStimulus(params,stimulusNumber);
+        % Load stimulus images later used by st_tModel.m, and define pixels
+        % that fall within stimulus window (variable "keep") to save
+        % computational resources
+        [stim,keepPixels] = getSTStimulus(params, s);
         
-        % Subfunction description: load stimulus images later used by
-        % st_tModel.m, and define pixels that have a stimulus to save computational resources
-        % see old code: keep = params.stim.instimwindow;
+        %% 5. Get pRFs
+        % Take spatial model params as input to get either
+        % standard 2D Gaussian or CSS 2D Gaussian. This requires:
+        % * params.analysis.fieldSize
+        % * params.analysis.sampleRate
+        % * params.analysis.spatial.x0, y0, sigmaMajor, sigmaMinor, theta
+        % prfs are [x-pixels by y-pixels (in deg)] by nrOfVoxels
+        [prfs, params] = getPRFs(params, keepPixels);
         
         %% Setting up loop over voxels
-        nVoxels = numel(params.analysis.x0);
-        fprintf('[%s]:Making %d model samples:',mfilename,nVoxels);
-        fprintf('Generating irf for %s model...\n', params.temporal.model)
+        nVoxels = numel(params.analysis.spatial.x0);
+        fprintf('[%s]: Making model samples for %d voxels/vertices:',mfilename,nVoxels);
+        fprintf('[%s]: Generating irf for %s model...\n', mfilename, params.analysis.temporal.model)
         
         % Loop over grid
         tic
         for n=1:nVoxels
             % Print how far we are
-            if mod(nVoxels,ceil(numel(params.analysis.x0)/10)) == 0
-                fprintf('[%s]: Finished %d/%d) \n',mfilename,nVoxels,numel(params.analysis.x0));
+            if mod(nVoxels,ceil(numel(params.analysis.spatial.x0)/10)) == 0
+                fprintf('[%s]: Finished %d/%d voxels) \n',mfilename,nVoxels,numel(params.analysis.spatial.x0));
             end
-            
-            %% 5. Get RF
-            % Requires: 
-            % * params.analysis.fieldSize
-            % * params.analysis.sampleRate
-            % * params.analysis.spatial.x, y, sigmaMajor, sigmaMinor, theta
-            [prfs, params] = getPRF(params); % rf is x-pixels by y-pixels (in deg)
-
+ 
             %% 6. Compute RF X Stim
             % TODO: rfResponse = getPRFResponse(stim, prf);
             
