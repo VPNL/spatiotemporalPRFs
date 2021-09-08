@@ -104,7 +104,8 @@ for s = 1:length(params.stim)
             end
  
             %% 6. Compute RF X Stim
-            % Get neural pRF time course for given pRF and stimulus
+            % Get neural pRF time course for given pRF xy (pixels) by voxels
+            % and stimulus xy (pixels) by time (ms)
             prfResponse = getPRFStimResponse(stim, prfs, params);
           
             %% 7. Compute spatiotemporal response in milliseconds
