@@ -1,4 +1,4 @@
-function [prf, params] = getPRFs(params)
+function [prfs, params] = getPRFs(params, varargin)
 % Description: Function that takes spatial model as input to get either
 % standard 2D Gaussian or CSS 2D Gaussian.
 % INPUT:
@@ -27,6 +27,11 @@ function [prf, params] = getPRFs(params)
 % prf       : (double) matrix with [x-pixels by y-pixels (in deg)] by nr of
 %               pRFs
 %% Check inputs
+if nargin > 1
+    keep = varargin{1};
+else
+    keep = [];
+end
 
 % Check if we request a particular pRF model
 if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.spatial.pRFModelType)
@@ -34,7 +39,7 @@ if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.s
 end
 
 % Get the support grid for the pRF:
-if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
+if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)    
     XYGrid = -params.analysis.spatial.fieldSize:params.analysis.spatial.sampleRate:params.analysis.spatial.fieldSize;
     [X,Y]  = meshgrid(XYGrid,XYGrid);
     
@@ -46,6 +51,16 @@ if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
     clear XYGrid X Y
 end
 
+% Assume circular pRFs if no sigma minor is defined
+if ~isfield(params.analysis.spatial,'sigmaMinor')
+    params.analysis.spatial.sigmaMinor = params.analysis.spatial.sigmaMajor;
+end
+
+% Assume circular pRFs if no sigma minor is defined
+if ~isfield(params.analysis.spatial,'theta')
+    params.analysis.spatial.theta = zeros(size(params.analysis.spatial.sigmaMajor));
+end
+
 %% Get num of voxels and loop over them to create pRFs
 numVoxels = length(params.analysis.spatial.sigmaMajor);
 
@@ -55,7 +70,7 @@ for n = 1:numVoxels
             % This function normalizes the volume under the 2D gaussian and
             % truncates pRF at 5 SD. All pRFs will have a volume of 1 (or close
             % to 1)
-            prf = pmGaussian2d(...
+            rf = pmGaussian2d(...
                 params.analysis.spatial.X, ...
                 params.analysis.spatial.Y, ...
                 params.analysis.spatial.sigmaMajor(n), ...
@@ -68,7 +83,7 @@ for n = 1:numVoxels
             % This function does NOT normalize the volume under the 2D gaussian
             % and does NOT truncate pRF at 5 SD. All pRFs will have a height
             % of 1.
-            prf = rfGaussian2d(...
+            rf = rfGaussian2d(...
                 params.analysis.spatial.X, ...
                 params.analysis.spatial.Y, ...
                 params.analysis.spatial.sigmaMajor(n), ...
@@ -85,20 +100,19 @@ for n = 1:numVoxels
                 ctr = 1+(max(params.analysis.spatial.X(:))/sampleRes);
                 center = ctr + [params.analysis.spatial.y0;params.analysis.spatial.x0]./params.analysis.spatial.sampleRate;
                 
-                mask = logical(makecircleimage(sqrt(size(prf,1)),r, [],[],[],[],center));
-                prf = prf.*mask(:);
+                mask = logical(makecircleimage(sqrt(size(rf,1)),r, [],[],[],[],center));
+                rf = rf.*mask(:);
             end
     end
     
     % If requested, remove no stim pixels
-    if params.analysis.spatial.removeStimPixelsFromPRF
-        keep = (params.stim(1).stimwindow==1);
-        prf(:,n) = double(prf(keep));
-        
+    if ~isempty(keep)
+        rf = rf(keep);
         % Store in params
         params.analysis.spatial.keep = keep;
-    else
-        prf(:,n) = prf;
     end
+    
+    prfs(:,n) = rf(:);
+    
     
 end
