@@ -28,9 +28,9 @@ function [prfs, params] = getPRFs(params, varargin)
 %               pRFs
 %% Check inputs
 if nargin > 1
-    keep = varargin{1};
+    keepPixels = varargin{1};
 else
-    keep = [];
+    keepPixels = [];
 end
 
 % Check if we request a particular pRF model
@@ -106,10 +106,10 @@ for n = 1:numVoxels
     end
     
     % If requested, remove no stim pixels
-    if ~isempty(keep)
-        rf = rf(keep);
+    if ~isempty(keepPixels)
+        rf = rf(keepPixels);
         % Store in params
-        params.analysis.spatial.keep = keep;
+        params.analysis.spatial.keep = keepPixels;
     end
     
     prfs(:,n) = rf(:);
