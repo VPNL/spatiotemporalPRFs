@@ -47,10 +47,24 @@ predictions = stPredictBOLDFromStim(params)
 %
 % Written by IK and ERK 2021 @ VPNL Stanford U
 
-%% 0. Get temporal parameters
+%% 0. Get spaital and temporal parameters
 % Take params and return back with the 5 t params, fs, numChannels, TR (s) 
 % as fields of params.analysis.temporal.[...] 
+
+params.analysis.pRFmodel = {'st'};
+params.analysis.spatial.option  = 2;
+params.analysis.temporalModel = '1ch-glm';
+params.analysis.keepAllPoints = false;
+params.analysis.sparsifyFlag = true;
+
+% stimfiles = getAllFiles('./Stimuli','images_and_params*',1);
+% stimfile = stimfiles{stimulusNumber};
+
+
+params = getSpatialParams(params, params.analysis.spatial.option);
 params = getTemporalParams(params);
+
+
 
 %% 1. Define hrf
 hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
