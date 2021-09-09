@@ -10,8 +10,13 @@ function prfResponse = getPRFStimResponse(stim, prf, params)
 %                   stimulus. Dimensions are number of pRFs by time (ms)
 
 % Get predicted pRF time series: dot product between rf and 3D stim
+<<<<<<< HEAD
 if params.analysis.spatial.sparsifyFlag            
     prfResponse = full(stim'*sparse(prf));
+=======
+if params.analysis.sparsifyFlag            
+    prfResponse = full(sparse(prf)'*stim);
+>>>>>>> 321d726cf35e222f364170d90409b1851f54fbca
 else
     prfResponse = stim'*prf;
 end
