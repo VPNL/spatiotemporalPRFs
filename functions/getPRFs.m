@@ -1,4 +1,4 @@
-function [prfs, params] = getPRFs(params, varargin)
+function [prfs, params] = getPRFs(params)
 % Description: Function that takes spatial model as input to get either
 % standard 2D Gaussian or CSS 2D Gaussian.
 % INPUT:
@@ -34,11 +34,6 @@ function [prfs, params] = getPRFs(params, varargin)
 % Written by ERK 2021 @ VPNL Stanford U
 
 %% Check inputs
-if nargin > 1
-    keepPixels = varargin{1};
-else
-    keepPixels = [];
-end
 
 % Check if we request a particular pRF model
 if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.spatial.pRFModelType)
@@ -120,7 +115,7 @@ switch params.analysis.spatial.pRFModelType
 end
 
 % If requested, remove no stim pixels
-if ~isempty(keepPixels)
+if ~params.analysis.keepAllPoints
     prfs = prfs(keepPixels,:);
     % Store in params
     params.analysis.spatial.keep = keepPixels;
