@@ -27,83 +27,86 @@ function predictions = stPredictBOLDFromStim(params, stim)
 %
 %{
 % Example:
+stim = cat(2,zeros(101*101,1000), ones(101*101,5000), zeros(101*101,1000));
 params.saveDataFlag = true;
 params.stim.sparsifyFlag = false;
 params.recomputePredictionsFlag = true;
-params.analysis.spatial.fieldSize = 12;
-params.analysis.spatial.sampleRate = 12/50;
-params.analysis.keepAllPoints = true;
 params.analysis.predFile = 'tmp.mat';
-params.analysis.temporalModel = '1ch-dcts';
+params.analysis.temporalModel = '3ch-linst';
 params.analysis.spatialModel = 'onegaussianFit';
+params.analysis.zeroPadPredNeuralFlag = true;
+params = getSpatialParams(params,1);
+params = getTemporalParams(params);
 params.analysis.spatial.x0 = [0 0];
 params.analysis.spatial.y0 = [0 0];
 params.analysis.spatial.sigmaMajor = [1 2];
-params.analysis.spatial.varexpl = [1 1];
-params.analysis.spatial.sparsifyFlag = false;
-params.analysis.zeroPadPredNeuralFlag = true;
-params.analysis.spatial.normPRFStimPredFlag = true;
-predictions = stPredictBOLDFromStim(params)
+predictions = stPredictBOLDFromStim(params,stim)
 %}
 %
 %
 % Written by IK and ERK 2021 @ VPNL Stanford U
 
-%% 1. Define hrf
-hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
-
+tic
 predictions = struct();
-fprintf('Computing BOLD predictions for %s model \n', ...
-    params.analysis.temporalModel); drawnow;
+fprintf('Computing BOLD predictions for %s %s model \n', ...
+    params.analysis.spatialModel, params.analysis.temporalModel); drawnow;
 
-%% 2. Get pRFs
-% Take spatial model params as input to get either
-% standard 2D Gaussian or CSS 2D Gaussian. This requires:
-% * params.analysis.fieldSize
-% * params.analysis.sampleRate
-% * params.analysis.spatial.x0, y0, sigmaMajor, sigmaMinor, theta
-% prfs are [x-pixels by y-pixels (in deg)] by nrOfVoxels
-[prfs, params] = getPRFs(params);
+%% 1. Create initial linear filters (spatio-, temporal-, or spatiotemporal pRFs)
+% Take spatial model params as input to get either standard 2D Gaussian, 
+% CSS 2D Gaussian, or 3D spatiotemporal filter. 
+% PRFs are in x (pixels) by y (pixels) by time (ms) by nr of voxels/vertices
+[linearPRFModel, params] = get3DSpatiotemporalpRFs(params);
  
-nVoxels = numel(params.analysis.spatial.x0);
-fprintf('[%s]: Making model samples for %d voxels/vertices:',mfilename,nVoxels);
-fprintf('[%s]: Generating irf for %s model...\n', mfilename, params.analysis.temporal.model)
+nVoxels = size(linearPRFModel.spatial.prfs,3);
+fprintf('[%s]: Making model predictions for %d voxels/vertices:',mfilename,nVoxels);
 
-%% 6. Compute RF X Stim
+%% 2. Compute spatiotemporal response in milliseconds (pRF X Stim)
 % Get neural pRF time course for given pRF xy (pixels) by voxels
 % and stimulus xy (pixels) by time (ms)
-prfResponse = getPRFStimResponse(stim, prfs, params);
+prfResponse = getPRFStimResponse(stim, linearPRFModel, params);
+
+%% 3. Apply nonlinearity (spatial or temporal compression, and/or relu)
+[predNeural, params] = applyNonlinearity(params,prfResponse);
+
+%% 4. Check if we need to add zeros, such that predNeural length is in 
+% integers of TRs
+if params.analysis.zeroPadPredNeuralFlag    
+    if mod(size(predNeural{1},1),params.analysis.temporal.fs)
+        padZeros = zeros(params.analysis.temporal.fs-mod(size(predNeural{1},1),params.analysis.temporal.fs), size(predNeural{1},2));
+        predNeural{1} = cat(1,predNeural{1}, padZeros);
+        if length(predNeural)>1
+            predNeural{2} = cat(1,predNeural{2}, padZeros);
+        end
+    end
+end
+
+
+
+%% 4. Compute spatiotemporal BOLD response in TRs
+% Define hrf
+hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
+
+predBOLD = getPredictedBOLDResponse(params, predNeural, hrf);
+
     
-%% 7. Compute spatiotemporal response in milliseconds
-[predNeural, params] = getPredictedNeuralResponse(params, prfResponse);
-
-%% 8. Compute spatiotemporal BOLD response in TRs
-% TODO: predBOLD(n,channels,time) = getPredictedBOLDResponse(params, predNeural(n,:,:), hrf)
-
-% Subfunction description: Convolve neural prediction with hrf
-% to get predicted BOLD response for voxel
-
-% see old code:
-%             predBOLD = cellfun(@(X, Y) convolve_vecs(X, Y, params.temporal.fs, 1 /params.temporal.tr), ...
-%                 rsp, repmat({hrf}, size(predNeural)), 'uni', false);
-%             predBOLD = cell2mat(predBOLD);
-    
-
-
 %% 9. Store predictions in struct
-predictions(s).predBOLD = predBOLD; clear predBOLD
-predictions(s).predNeural = predNeural; clear predNeural
+predictions.predBOLD    = predBOLD; 
+predictions.predNeural  = predNeural;
+predictions.params      = params;
+predictions.prfs        = linearPRFModel;
+predictions.prfResponse = prfResponse;
+predictions.hrf         = hrf;
 
-fprintf('[%s]: Finished simulus = %d. Time: %d min.\t(%s)\n', ...
-    mfilename, s, round(toc/60), datestr(now));
-drawnow;
-
+fprintf('[%s]: Finished! Time: %d min.\t(%s)\n', ...
+    mfilename, round(toc/60), datestr(now));
 
 
 %% 10. Save predictions if requested
 if params.saveDataFlag
     fprintf('[%s]: Saving data.. \n', mfilename)
-    save(params.analysis.predFile, 'predictions','-v7.3')
+    save(params.analysis.predFile, '-struct', 'predictions', 'predBOLD','predNeural','params','prfs','prfResponse','hrf','-v7.3')
+
+%     save(params.analysis.predFile, 'predctions','-v7.3')
     fprintf('[%s]: Done!\n', mfilename)
 end
 

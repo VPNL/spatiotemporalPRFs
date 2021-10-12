@@ -115,10 +115,8 @@ switch params.analysis.spatial.pRFModelType
 end
 
 % If requested, remove no stim pixels
-if ~params.analysis.keepAllPoints
+if ~isempty(params.analysis.spatial.keepPixels)
     prfs = prfs(keepPixels,:);
-    % Store in params
-    params.analysis.spatial.keep = keepPixels;
 end
 
 end

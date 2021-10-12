@@ -1,4 +1,4 @@
-function prfResponse = getPRFStimResponse(stim, prf, params)
+function st_prfResponse = getPRFStimResponse(stim, prf, params)
 % Function to generate neural pRF time course for given pRF and stimulus.
 %
 % INPUTs:
@@ -8,30 +8,25 @@ function prfResponse = getPRFStimResponse(stim, prf, params)
 % OUTPUT:
 % prfResponse  :  (double vector or matrix) neural pRF timecourse for
 %                   stimulus. Dimensions are number of pRFs by time (ms)
-
-% Get predicted pRF time series: dot product between rf and 3D stim
-<<<<<<< HEAD
-if params.analysis.spatial.sparsifyFlag            
-    prfResponse = full(stim'*sparse(prf));
-=======
-if params.analysis.sparsifyFlag            
-    prfResponse = full(sparse(prf)'*stim);
->>>>>>> 321d726cf35e222f364170d90409b1851f54fbca
+%
+%% First spatial
+% Get predicted pRF time series: inner product between spatial rf and 3D stim
+if params.analysis.spatial.sparsifyFlag
+    s_prfResponse = full(stim'*sparse(prf.spatial.prfs));
 else
-    prfResponse = stim'*prf;
+    s_prfResponse = stim'*prf.spatial.prfs; % time x voxels
 end
 
-% Exponentiate predicted pRF stimulus time series when CSS
-if strcmp(params.analysis.spatialModel,'cssFit')
-    prfResponse = bsxfun(@power, prfResponse, params.spatial.exponent);
+%% Then temporal
+% Get predicted pRF time series: convolve spatial pRF response
+% and temporal filter
+
+st_prfResponse = [];
+for n = 1:length(prf.names)
+    tmp = conv2(prf.temporal{n},s_prfResponse, 'full');
+    st_prfResponse{n} = tmp(1:size(s_prfResponse,1),:);
 end
 
-if isfield(params.analysis.spatial,'normPRFStimPredFlag')
-    if params.analysis.spatial.normPRFStimPredFlag
-        for ii = 1:size(prfResponse,2)
-            prfResponse(:,ii) = normMax(prfResponse(:,ii));
-        end
-    end
-end
+return
         
     
