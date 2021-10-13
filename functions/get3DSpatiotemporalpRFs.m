@@ -19,10 +19,36 @@ switch params.analysis.temporalModel
     case '3ch-linst'
         x = params.analysis.temporal.param;
         % Create temporal IRFs for sustained and transient channel
-        f.temporal{1} = tch_irfs('S', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
-        f.temporal{2} = tch_irfs('T', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
+        irfSustained = tch_irfs('S', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
+        irfTransient = tch_irfs('T', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
+        
+        % Normalize such that area under the curve sums to 1 
+        f.temporal{1} = normSum(irfSustained);
+ 
+        % For transient nrf, we do this separately for positive and negative parts:
+        % First find indices
+        pos_idx = irfTransient>=0;
+        neg_idx = irfTransient<0;
+        
+        scf = 1;% 0.5; % sum of area under each pos/neg curve 
+        % Get positive part and normalize sum
+        irfT_pos = irfTransient(pos_idx);
+        irfT_pos = scf*normSum(irfT_pos);
+
+        % Get negative part and normalize sum
+        irfT_neg = abs(irfTransient(neg_idx));
+        irfT_neg = -scf*normSum(irfT_neg);
+
+        % Combine positive and negative parts
+        nrfT2 = NaN(size(irfTransient));
+        nrfT2(pos_idx) = irfT_pos;
+        nrfT2(neg_idx) = irfT_neg;
+
+        f.temporal{2} = nrfT2;
         f.temporal{3} = -f.temporal{2};
         f.names = {'sustained','transient_odd','transient_even'};
+        f.scaleFactorNormSumTransChan = scf;
+        clear nrfT2 irfT_pos irfT_neg
         
         % Get nr of filters      
         nfilters = length(f.names);
@@ -53,11 +79,16 @@ switch params.analysis.temporalModel
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
         f.main = f.spatial.prfs;
-        
+        f.temporal{1} = 1;
+        f.names = {'linear'};
+
     case '1ch-glm'
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
         f.main = f.spatial.prfs;
+        f.temporal{1} = 1;
+        f.names = {'linear'};
+
 end
 
 
