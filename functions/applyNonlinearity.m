@@ -5,9 +5,10 @@ function [nonLinearResponse, params] = applyNonlinearity(params,prfResponse)
 
 % CSS - compressive spatial summation (Kay et al. 2013 J Neurophys)
 if strcmp(params.analysis.spatialModel,'cssFit')
-    % Exponentiate predicted pRF stimulus time series
-    nonLinearResponse = bsxfun(@power, prfResponse, params.spatial.exponent);
     params.analysis.nonlinearity = 'css';
+
+    % Exponentiate predicted pRF stimulus time series
+    nonLinearResponse{1} = bsxfun(@power, cell2mat(prfResponse), params.analysis.spatial.exponent);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -16,27 +17,36 @@ end
 
 % DCTS - divisive compressive temporal summation (Zhou et al. 2018 PLoS CB)
 if strcmp(params.analysis.temporalModel,'1ch-dcts')
-    % Derive temporal sample rate and time axis
-    dt = 1/params.analysis.temporal.fs;
-    t  = dt : dt : size(prfResponse,1)/params.analysis.temporal.fs;
-    
+    params.analysis.nonlinearity = 'dcts';
+ 
     % Apply divisive normalization to pRF stimulus time series
-    nonLinearResponse = DNmodel(params.temporal.params, prfResponse, t);
-    params.analysis.nonlinearity = 'cts';
+    nonLinearResponse{1} = DNmodel(params.analysis.temporal.param, cell2mat(prfResponse));
 end
 
-% Sustained and transient 3D spatiotemporal filter are subject to a relu 
-% to combine the odd and even transient function
-if strcmp(params.analysis.temporalModel,'3ch-linst')
-    % define relu params
-    params.analysis.relu.slope  = 1; % no scaling
-    params.analysis.relu.thresh = 0; % keep everything above zero, set rest to zero.
-    % apply it to each channel prf response
-    for n = 1:length(prfResponse)
-        nonLinearResponse{n} = relu(prfResponse{n}, params.analysis.relu.slope, params.analysis.relu.thresh);
-    end
-    params.analysis.nonlinearity = 'relu';
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  RECTIFIED LINEAR UNIT (ReLU)  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% All spatiotemporal filters are subject to a rectified linear unit (reLU).
+% This should only affect models with negative predicted neural responses, 
+% such as the 3ch-linst. In that case, when we apply a relu we technically
+% combine the odd and even transient functions.
+if strcmp(params.analysis.temporalModel,'3ch-linst') || strcmp(params.analysis.temporalModel,'1ch-glm')
+    nonLinearResponse = prfResponse;
+    params.analysis.nonlinearity = [];
 end
+
+% define relu params
+params.analysis.relu.slope  = 1; % no scaling
+params.analysis.relu.thresh = 0; % keep everything above zero, set rest to zero.
+params.analysis.reluFlag = 1;
+
+% apply it to each channel prf response
+for n = 1:length(nonLinearResponse)
+    nonLinearResponse{n} = relu(nonLinearResponse{n}, params.analysis.relu.slope, params.analysis.relu.thresh);
+end
+
+return
+
 
 
 
