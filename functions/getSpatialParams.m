@@ -29,9 +29,7 @@ switch optionNumber
     case 1
         params.analysis.spatial.fieldSize = 12;
         params.analysis.spatial.sampleRate = 12/50;
-        params.analysis.spatialModel = 'onegaussianFit';
         params.analysis.spatial.pRFModelType = 'unitVolume';
-%         params.analysis.spatial.normPRFStimPredFlag = true;
         params.analysis.spatial.keepPixels = [];
         params.analysis.spatial.sparsifyFlag = false;
        
