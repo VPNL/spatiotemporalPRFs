@@ -16,7 +16,7 @@ function [f, params] = get3DSpatiotemporalpRFs(params)
 
 %% Get spatial or temporal pRF filter
 switch params.analysis.temporalModel
-    case '3ch-linst'
+    case '3ch-stLN'
         x = params.analysis.temporal.param;
         % Create temporal IRFs for sustained and transient channel
         irfSustained = tch_irfs('S', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
