@@ -77,13 +77,15 @@ else % load default temporal params if Constant file is not there
             params.shift        = 0;    % shift of onset response (in ms?)
             params.scale        = 1;    % scale factor of final neural response
           
-        case '3ch-linst' % load linear 3-channel model, with a sustained, transient-odd, transient-even channel
+        case '3ch-stLN' % load linear-nonlinear 3-channel model, with a sustained, transient-odd, transient-even channel
             params.num_channels = 3;
             params.fs           = 1000; % sample rate (Hz)
             params.tau_s        = 4.93; % time constant for excitatory mechanism (ms) to create sustained gamma IRF
             params.n1           = 9;    % number of stages in excitatory mechanism
             params.n2           = 10;   % number of stages in inhibitory mechanism
             params.kappa        = 1.33; % ratio of time constants for primary/secondary filters
+            params.exp          = 0.5;  % nonlinear compressive exponent for spatiotemporal nonlinearity
+
     end
     
     % Pass values to params
