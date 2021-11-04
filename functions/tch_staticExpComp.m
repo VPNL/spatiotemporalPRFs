@@ -1,10 +1,10 @@
-function Y = tch_staticExp(X, n, verbose)
+function Y = tch_staticExpComp(X, n, verbose)
 
 if nargin < 3
-    verbose = false
+    verbose = false;
 end
 
-if  isempty(verbose); 
+if  isempty(verbose)
     verbose = false; 
 end
 

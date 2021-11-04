@@ -34,10 +34,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SPATIOTEMPORAL NON LINEARITY  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if strcmp(params.analysis.temporalModel,'3ch-linst')
-    verbose = false
+if strcmp(params.analysis.temporalModel,'3ch-stLN')
+    verbose = false;
     for n = 1:length(prfResponse)
-        nonLinearResponse{n} = tch_staticExp(prfResponse{n}, params.analysis.spatiotemporal.exp, verbose);
+        nonLinearResponse{n} = tch_staticExpComp(prfResponse{n}, params.analysis.temporal.param.exp, verbose);
     end
     params.analysis.nonlinearity = 'staticExp';
 end
