@@ -1,8 +1,14 @@
-function output = relu(input, slope, thresh)
+function output = relu(input, varargin)
 
 % Check inputs
-if isempty(slope) || ~exist('slope','var')
+if isempty(varargin)
     slope = 1;
+    thresh = 0;
+elseif length(varargin)==1
+    slope = varargin{1};
+elseif length(varargin)==2
+    slope = varargin{1};
+    thresh = varargin{2};
 end
 
 if isempty(thresh) || ~exist('thresh','var')
