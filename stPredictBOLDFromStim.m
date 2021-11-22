@@ -60,7 +60,7 @@ fprintf('[%s]: Computing BOLD predictions for %s %s model \n', ...
 % 3D Spatiotemporal pRFs filters are in  xy (pixels) by time (ms) by nr of voxels/vertices
 [linearPRFModel, params] = get3DSpatiotemporalpRFs(params);
  
-nVoxels = size(linearPRFModel.spatial.prfs,3);
+nVoxels = size(linearPRFModel.spatial.prfs,2);
 fprintf('[%s]: Making model predictions for %d voxels/vertices \n',mfilename,nVoxels);
 
 %% 2. Compute spatiotemporal response in milliseconds (pRF X Stim)
@@ -68,17 +68,21 @@ fprintf('[%s]: Making model predictions for %d voxels/vertices \n',mfilename,nVo
 % pixels by voxels) and stimulus (xy in pixels  by time in ms)
 prfResponse = getPRFStimResponse(stim, linearPRFModel, params);
 
-%% 3. Apply nonlinearity (spatial compression, temporal compression, and/or relu)
+%% 3. Apply ReLU 
+[relu_prfResponse, params] = applyReLU(prfResponse,params);
+
+%% 3. Apply nonlinearity (spatial compression, temporal compression)
 % pRF time course array remains the same size: time (ms) by voxels
-[predNeural, params] = applyNonlinearity(params,prfResponse);
+[predNeural, params] = applyNonlinearity(relu_prfResponse, params);
 
 %% 4. Check if we need to add zeros, if we want predNeural length in integers of TRs
 if params.analysis.zeroPadPredNeuralFlag    
     if mod(size(predNeural{1},1),params.analysis.temporal.fs)
         padZeros = zeros(params.analysis.temporal.fs-mod(size(predNeural{1},1),params.analysis.temporal.fs), size(predNeural{1},2));
-        predNeural{1} = cat(1,predNeural{1}, padZeros);
         if length(predNeural)>1
-            predNeural{2} = cat(1,predNeural{2}, padZeros);
+            for ii = 1:length(predNeural)
+                predNeural{ii} = cat(1,predNeural{ii}, padZeros);
+            end
         end
     end
 end
