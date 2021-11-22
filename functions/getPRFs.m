@@ -54,14 +54,29 @@ if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
 end
 
 % Assume circular pRFs if no sigma minor is defined
-if ~isfield(params.analysis.spatial,'sigmaMinor')
-    params.analysis.spatial.sigmaMinor = params.analysis.spatial.sigmaMajor;
+if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
+    if ~isfield(params.analysis.spatial.lh,'sigmaMinor')
+        params.analysis.spatial.lh.sigmaMinor = params.analysis.spatial.lh.sigmaMajor;
+    end
+    if ~isfield(params.analysis.spatial.rh,'sigmaMinor')
+        params.analysis.spatial.rh.sigmaMinor = params.analysis.spatial.rh.sigmaMajor;
+    end
+    % Assume circular pRFs if no sigma minor is defined
+    if ~isfield(params.analysis.spatial.lh,'theta')
+        params.analysis.spatial.lh.theta = zeros(size(params.analysis.spatial.lh.sigmaMajor));
+    end
+    if ~isfield(params.analysis.spatial.rh,'theta')
+        params.analysis.spatial.rh.theta = zeros(size(params.analysis.spatial.rh.sigmaMajor));
+    end
+else
+    if ~isfield(params.analysis.spatial,'sigmaMinor')
+        params.analysis.spatial.sigmaMinor = params.analysis.spatial.sigmaMajor;
+    end
+    if ~isfield(params.analysis.spatial,'theta')
+        params.analysis.spatial.theta = zeros(size(params.analysis.spatial.sigmaMajor));
+    end
 end
 
-% Assume circular pRFs if no sigma minor is defined
-if ~isfield(params.analysis.spatial,'theta')
-    params.analysis.spatial.theta = zeros(size(params.analysis.spatial.sigmaMajor));
-end
 
 % Assume we want to trim edges of pRF
 if ~isfield(params.analysis.spatial,'trimRFFlag')
@@ -69,48 +84,68 @@ if ~isfield(params.analysis.spatial,'trimRFFlag')
 end
 
 %% Get num of voxels and loop over them to create pRFs
-numVoxels = length(params.analysis.spatial.sigmaMajor);
+if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
+    numVoxels = length(params.analysis.spatial.lh.sigmaMajor)+length(params.analysis.spatial.rh.sigmaMajor);
+else
+    numVoxels = length(params.analysis.spatial.sigmaMajor);
+end
+
+% Get hemispheres
+hemis = [];
+if isfield(params.analysis.spatial, 'lh'); hemis = [hemis, {'lh'}]; end
+if isfield(params.analysis.spatial, 'rh'); hemis = [hemis, {'rh'}]; end
+
+prfs = [];
 
 switch params.analysis.spatial.pRFModelType
+    
     case 'unitVolume'
         % This function normalizes the volume under the 2D gaussian and
         % truncates pRF at 5 SD. All pRFs will have a volume of 1 (or close
         % to 1)
-        prfs = pmGaussian2d(...
-            params.analysis.spatial.X, ...
-            params.analysis.spatial.Y, ...
-            params.analysis.spatial.sigmaMajor, ...
-            params.analysis.spatial.sigmaMinor, ...
-            params.analysis.spatial.theta, ...
-            params.analysis.spatial.x0, ...
-            params.analysis.spatial.y0);
-        
+        for h = 1:length(hemis)
+            
+            rf = pmGaussian2d(...
+                params.analysis.spatial.(hemis{h}).X, ...
+                params.analysis.spatial.(hemis{h}).Y, ...
+                params.analysis.spatial.(hemis{h}).sigmaMajor, ...
+                params.analysis.spatial.(hemis{h}).sigmaMinor, ...
+                params.analysis.spatial.(hemis{h}).theta, ...
+                params.analysis.spatial.(hemis{h}).x0, ...
+                params.analysis.spatial.(hemis{h}).y0);
+            prfs = cat(2,prfs,rf);
+        end
     case 'unitHeight'
         % This function does NOT normalize the volume under the 2D gaussian
-        % and does NOT truncate pRF at 5 SD. All pRFs will have a height
-        % of 1.
-        prfs = rfGaussian2d(...
-            params.analysis.spatial.X, ...
-            params.analysis.spatial.Y, ...
-            params.analysis.spatial.sigmaMajor, ...
-            params.analysis.spatial.sigmaMinor, ...
-            params.analysis.spatial.theta, ...
-            params.analysis.spatial.x0, ...
-            params.analysis.spatial.y0);
+        % but will truncate pRF at 5 SD. All pRFs will have a height of 1.
         
-        for n = 1:numVoxels
-            if params.analysis.spatial.trimRFFlag
-                % Mask RF at 5 sd to remove trailing edge
-                SDcutoff = 5;
-                % Define radius
-                r = (params.analysis.spatial.sigmaMajor(n)*SDcutoff)./params.analysis.spatial.sampleRate;
-                ctr = 1+(max(params.analysis.spatial.X(:))/params.analysis.spatial.sampleRate);
-                center = ctr + [params.analysis.spatial.y0(n);params.analysis.spatial.x0(n)]./params.analysis.spatial.sampleRate;
-                
-                thisRF = reshape(prfs(:,n),[sqrt(size(prfs,1)),sqrt(size(prfs,1))]);
-                mask = logical(makecircleimage(size(thisRF,1),r, [],[],[],[],center));
-                prfs(:,n) = thisRF.*mask;
+        for h = 1:length(hemis)
+            rf = rfGaussian2d(...
+                params.analysis.spatial.(hemis{h}).X, ...
+                params.analysis.spatial.(hemis{h}).Y, ...
+                params.analysis.spatial.(hemis{h}).sigmaMajor, ...
+                params.analysis.spatial.(hemis{h}).sigmaMinor, ...
+                params.analysis.spatial.(hemis{h}).theta, ...
+                params.analysis.spatial.(hemis{h}).x0, ...
+                params.analysis.spatial.(hemis{h}).y0);
+            
+            for n = 1:numVoxels
+                if params.analysis.spatial.trimRFFlag
+                    % Mask RF at 5 sd to remove trailing edge
+                    SDcutoff = 5;
+                    % Define radius
+                    r = (params.analysis.spatial.(hemis{h}).sigmaMajor(n)*SDcutoff)./params.analysis.spatial.sampleRate;
+                    ctr = 1+(max(params.analysis.spatial.X(:))/params.analysis.spatial.sampleRate);
+                    center = ctr + [params.analysis.spatial.(hemis{h}).y0(n); ...
+                                    params.analysis.spatial.(hemis{h}).x0(n)] ./params.analysis.spatial.sampleRate;
+                    
+                    thisRF = reshape(rf(:,n),[sqrt(size(rf,1)),sqrt(size(rf,1))]);
+                    mask = logical(makecircleimage(size(thisRF,1),r, [],[],[],[],center));
+                    rf(:,n) = thisRF.*mask;
+                end
             end
+            
+            prfs = cat(2,prfs,rf);
         end
 end
 
