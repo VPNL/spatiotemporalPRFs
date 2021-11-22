@@ -16,7 +16,7 @@ function output = convCut2(stimulus, impulse, nTerms)
 
 output = conv2(squeeze(stimulus), squeeze(impulse), 'full');
 
-output = output(1:nTerms);
+output = output(1:nTerms,:);
 
 
 end
