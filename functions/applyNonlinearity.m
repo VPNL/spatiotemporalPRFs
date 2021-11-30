@@ -3,7 +3,7 @@ function [nonLinearResponse, params] = applyNonlinearity(prfResponse,params)
 %      SKIP NON LINEARITY     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(params.analysis.temporalModel,'1ch-glm')
-    nonLinearResponse{1} = prfResponse;
+    nonLinearResponse = prfResponse;
     params.analysis.nonlinearity = [];
 end
 
@@ -16,7 +16,12 @@ if strcmp(params.analysis.spatialModel,'cssFit')
     params.analysis.nonlinearity = 'css';
 
     % Exponentiate predicted pRF stimulus time series
-    nonLinearResponse{1} = bsxfun(@power, cell2mat(prfResponse), params.analysis.spatial.exponent);
+    if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh') 
+        exponent = cat(2,params.analysis.spatial.lh.exponent,params.analysis.spatial.rh.exponent);
+    else
+        exponent = params.analysis.spatial.exponent;
+    end
+    nonLinearResponse{1} = bsxfun(@power, cell2mat(prfResponse), exponent);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
