@@ -78,12 +78,17 @@ prfResponse = getPRFStimResponse(stim, linearPRFModel, params);
 %% 4. Check if we need to add zeros, if we want predNeural length in integers of TRs
 if params.analysis.zeroPadPredNeuralFlag    
     if mod(size(predNeural{1},1),params.analysis.temporal.fs)
-        padZeros = zeros(params.analysis.temporal.fs-mod(size(predNeural{1},1),params.analysis.temporal.fs), size(predNeural{1},2));
-        if length(predNeural)>1
-            for ii = 1:length(predNeural)
-                predNeural{ii} = cat(1,predNeural{ii}, padZeros);
-            end
+        padZeros = zeros(params.analysis.temporal.fs-mod(size(predNeural{1},1),params.analysis.temporal.fs), size(predNeural{1},2)); 
+        for ii = 1:length(predNeural)
+            predNeural{ii} = cat(1,predNeural{ii}, padZeros);
         end
+    end
+end
+
+%% 4. Check if we want to normalize the max height of the neural channels
+if params.analysis.normNeuralChan
+    for ii = 1:length(predNeural)
+        predNeural{ii} = normMax(predNeural{ii});
     end
 end
 
@@ -98,7 +103,7 @@ predBOLD = getPredictedBOLDResponse(params, predNeural, hrf);
 predictions.predBOLD    = predBOLD; 
 predictions.predNeural  = predNeural;
 predictions.params      = params;
-predictions.prfs        = linearPRFModel;
+predictions.prfs        = linearPRFModel.spatial.prfs;
 predictions.prfResponse = prfResponse;
 predictions.hrf         = hrf;
 
