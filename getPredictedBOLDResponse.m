@@ -3,16 +3,16 @@ function predBOLD = getPredictedBOLDResponse(params, predNeural, hrf)
 % for each voxel
 
 for n = 1:size(predNeural,2)
-    if size(predNeural{n},1) < size(predNeural{n},2)
-        predNeural{n} = predNeural{n}';
+    chanResponse = predNeural{n};
+    if size(chanResponse,1) < size(chanResponse,2)
+        chanResponse = chanResponse';
     end
-    chanResponse = num2cell(predNeural{n},1)';
-    cellhrf = repmat({hrf}, size(chanResponse,1), 1);
-    predBOLD1 = cellfun(@(X, Y) convolve_vecs(X, Y, params.analysis.temporal.fs, 1 /params.analysis.temporal.tr), ...
-            chanResponse, cellhrf, 'uni', false);
-    predBOLD2 = cellfun(@transpose,predBOLD1,'UniformOutput',false);
-    predBOLD{n} = cell2mat(predBOLD2)';
-    
+    cellhrf = repmat({hrf}, size(chanResponse,2),1);
+    cellneural = num2cell(chanResponse,1)';
+    predBOLD_tmp = cellfun(@(X, Y) convolve_vecs(X, Y, params.analysis.temporal.fs, 1 /params.analysis.temporal.tr), ...
+            cellneural, cellhrf, 'uni', false);
+    predBOLD_tmp = cellfun(@transpose,predBOLD_tmp,'UniformOutput',false);
+    predBOLD{n} = cell2mat(predBOLD_tmp)';
 end
 
 return
