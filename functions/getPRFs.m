@@ -42,15 +42,21 @@ end
 
 % Get the support grid for the pRF:
 if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
-    XYGrid = -params.analysis.spatial.fieldSize:params.analysis.spatial.sampleRate:params.analysis.spatial.fieldSize;
-    [X,Y]  = meshgrid(XYGrid,XYGrid);
-    
-    % Store in params
-    params.analysis.spatial.X = X;
-    params.analysis.spatial.Y = Y;
-    
-    % Clear some memory
-    clear XYGrid X Y
+    if ~isfield(params.analysis, 'X') || isempty(params.analysis.X)
+        XYGrid = -params.analysis.spatial.fieldSize:params.analysis.spatial.sampleRate:params.analysis.spatial.fieldSize;
+        [X,Y]  = meshgrid(XYGrid,XYGrid);
+
+        % Store in params
+        params.analysis.spatial.X = X(:);
+        params.analysis.spatial.Y = -1*Y(:);
+        
+        % Clear some memory
+        clear XYGrid X Y
+    else
+        params.analysis.spatial.X = params.analysis.X;
+        params.analysis.spatial.Y = params.analysis.Y;
+    end
+
 end
 
 % Assume circular pRFs if no sigma minor is defined
