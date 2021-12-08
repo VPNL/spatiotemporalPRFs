@@ -77,27 +77,26 @@ prfResponse = getPRFStimResponse(stim, linearPRFModel, params);
 
 %% 4. Check if we need to add zeros, if we want predNeural length in integers of TRs
 if params.analysis.zeroPadPredNeuralFlag    
-    if mod(size(predNeural{1},1),params.analysis.temporal.fs)
-        padZeros = zeros(params.analysis.temporal.fs-mod(size(predNeural{1},1),params.analysis.temporal.fs), size(predNeural{1},2)); 
-        for ii = 1:length(predNeural)
-            predNeural{ii} = cat(1,predNeural{ii}, padZeros);
-        end
+    if mod(size(predNeural,1),params.analysis.temporal.fs)
+        padZeros = zeros(params.analysis.temporal.fs-mod(size(predNeural,1),params.analysis.temporal.fs), size(predNeural,2),size(predNeural,3)); 
+        predNeural = cat(1,predNeural, padZeros);
     end
 end
 
-%% 4. Check if we want to normalize the max height of the neural channels
+%% 5. Check if we want to normalize the max height of the neural channels
 if params.analysis.normNeuralChan
-    for ii = 1:length(predNeural)
-        predNeural{ii} = normMax(predNeural{ii});
+    for ii = 1:size(predNeural,3)
+        predNeural(:,:,ii) = normMax(predNeural(:,:,ii));
     end
 end
 
-%% 4. Compute spatiotemporal BOLD response in TRs
+%% 6. Compute spatiotemporal BOLD response in TRs
+
 % Define hrf
 hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
 
 % Convolve neural response with HRF per channel, and downsample to TR
-predBOLD = getPredictedBOLDResponse(params, predNeural, hrf);
+predBOLD = getPredictedBOLDResponse(predNeural, hrf, params);
 
 %% 5. Store predictions in struct
 predictions.predBOLD    = predBOLD; 

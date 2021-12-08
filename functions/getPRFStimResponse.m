@@ -27,9 +27,9 @@ end
 % Get predicted pRF time series: convolve spatial pRF response
 % and temporal filter
 
-st_prfResponse = {};
+st_prfResponse = [];
 for n = 1:length(linearPRFFilters.names)
-    st_prfResponse{n} = convCut2(s_prfResponse, linearPRFFilters.temporal{n}, size(s_prfResponse,1));
+    st_prfResponse(:,:,n) = convCut2(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
 end
 
 return

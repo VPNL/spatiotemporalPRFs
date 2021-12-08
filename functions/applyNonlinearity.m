@@ -1,10 +1,30 @@
 function [nonLinearResponse, params] = applyNonlinearity(prfResponse,params)
+% Wrapper function to apply different types of nonlinearities depending on
+% the model type.
+% 
+% INPUT
+% prfResponse       : (double) matrix or array with dimensions time by
+%                       voxels [by channels]
+% params            : (struct) parameter struct should have at least the
+%                       follow fields for this wrapper function:
+%                       - params.analysis.temporalModel
+%                       - params.analysis.spatialModel
+%                       - if CSSfit, params.analysis.spatial.(lh/rh).exponent
+%                       - if 3ch-stLN, params.analysis.temporal.param.exp
+%
+% OUTPUT
+% nonLinearResponse : (double) matrix or array with dimensions time by 
+%                       voxels [by channels] 
+% params            : (struct) parameter struct with updated fields for
+%                       type of nonlinearity applied: params.analysis.nonlinearity
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %      SKIP NON LINEARITY     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(params.analysis.temporalModel,'1ch-glm')
     nonLinearResponse = prfResponse;
-    params.analysis.nonlinearity = [];
+    params.analysis.nonlinearity = 'none';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -21,7 +41,7 @@ if strcmp(params.analysis.spatialModel,'cssFit')
     else
         exponent = params.analysis.spatial.exponent;
     end
-    nonLinearResponse{1} = bsxfun(@power, cell2mat(prfResponse), exponent);
+    nonLinearResponse = bsxfun(@power, prfResponse, exponent);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,7 +53,7 @@ if strcmp(params.analysis.temporalModel,'1ch-dcts')
     params.analysis.nonlinearity = 'dcts';
  
     % Apply divisive normalization to pRF stimulus time series
-    nonLinearResponse{1} = DNmodel(params.analysis.temporal.param, cell2mat(prfResponse));
+    nonLinearResponse = DNmodel(params.analysis.temporal.param, prfResponse);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,8 +61,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(params.analysis.temporalModel,'3ch-stLN')
     verbose = false;
-    for n = 1:length(prfResponse)
-        nonLinearResponse{n} = tch_staticExpComp(prfResponse{n}, params.analysis.temporal.param.exp, verbose);
+    for n = 1:size(prfResponse,3)
+        nonLinearResponse(:,:,n) = tch_staticExpComp(prfResponse(:,:,n), params.analysis.temporal.param.exponent,verbose);
     end
     params.analysis.nonlinearity = 'staticExp';
 end

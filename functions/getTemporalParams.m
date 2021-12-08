@@ -84,11 +84,11 @@ else % load default temporal params if Constant file is not there
             p.n1           = 9;    % number of stages in excitatory mechanism
             p.n2           = 10;   % number of stages in inhibitory mechanism
             p.kappa        = 1.33; % ratio of time constants for primary/secondary filters
-            if isfield(params.analysis.temporal.param,'exponent')
-                p.exp = params.analysis.temporal.param.exponent;
-            else % go with default
-                p.exp          = 0.5;  % nonlinear compressive exponent for spatiotemporal nonlinearity
-            end
+%             if isfield(params.analysis.temporal.param,'exponent')
+%                 p.exp = params.analysis.temporal.param.exponent;
+%             else % go with default
+                p.exponent          = 0.5;  % nonlinear compressive exponent for spatiotemporal nonlinearity
+%             end
     end
     
     % Pass values to params

@@ -19,9 +19,9 @@ end
 output = zeros(size(input));
 
 % Keep points above threshold
-for n = 1:size(input,2)
-    currInput = input(:,n);
-    output(currInput>thresh,n) = slope.*currInput(currInput>thresh);
-end
+mask = input>thresh;
+output(mask) = input(mask);
+output = slope.*output;
+
 
 return
