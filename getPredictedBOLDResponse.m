@@ -1,18 +1,22 @@
-function predBOLD = getPredictedBOLDResponse(params, predNeural, hrf)
-% Convolve neural prediction with hrf to get predicted BOLD response 
-% for each voxel
-
-for n = 1:size(predNeural,2)
-    chanResponse = predNeural{n};
-    if size(chanResponse,1) < size(chanResponse,2)
-        chanResponse = chanResponse';
-    end
-    cellhrf = repmat({hrf}, size(chanResponse,2),1);
-    cellneural = num2cell(chanResponse,1)';
-    predBOLD_tmp = cellfun(@(X, Y) convolve_vecs(X, Y, params.analysis.temporal.fs, 1 /params.analysis.temporal.tr), ...
-            cellneural, cellhrf, 'uni', false);
-    predBOLD_tmp = cellfun(@transpose,predBOLD_tmp,'UniformOutput',false);
-    predBOLD{n} = cell2mat(predBOLD_tmp)';
+function predBOLD = getPredictedBOLDResponse(predNeural, hrf, params)
+% % Functoin to convolve neural prediction with hrf to get predicted BOLD 
+% response for each voxel
+%
+% INPUTS
+% predNeural        : (double) matrix or array with dimensions time by
+%                       voxels [by channels]
+% hrf               : (double) hemodynamic response function (time x 1),
+%                       should be sampled at same rate as predNeural.
+% params            : (struct) parameter struct should have at least the
+%                       follow fields for this wrapper function:
+%                       - params.analysis.temporal.fs: sample rate of
+%                           neural response (hz)
+%                       - params.analysis.temporal.tr: repetition time of
+%                           BOLD response (s)
+% 
+for n = 1:size(predNeural,3) 
+    predBOLD_tmp = convCut2(predNeural(:,:,n),hrf,size(predNeural,1));
+    predBOLD(:,:,n) = downsample(predBOLD_tmp,  params.analysis.temporal.tr*params.analysis.temporal.fs);
 end
 
 return
