@@ -1,5 +1,5 @@
 function [f, params] = get3DSpatiotemporalpRFs(params)
-% Description: Function that creates spatiotemporal pRF models 
+% Description: Function that creates spatiotemporal pRF models
 % to use as linear filters.
 %
 % INPUT:
@@ -22,42 +22,45 @@ switch params.analysis.temporalModel
         irfSustained = tch_irfs('S', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
         irfTransient = tch_irfs('T', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
         
-        % Normalize such that area under the curve sums to 1 
-        f.temporal{1} = normSum(irfSustained);
- 
+        f.temporal = zeros(max([length(irfSustained),length(irfTransient)]),3);
+        
+        % Normalize such that area under the curve sums to 1
+        f.temporal(1:length(irfSustained),1) = normSum(irfSustained);
+        
         % For transient nrf, we do this separately for positive and negative parts:
         % First find indices
         pos_idx = irfTransient>=0;
         neg_idx = irfTransient<0;
         
-        scf = 1;% 0.5; % sum of area under each pos/neg curve 
+        scf = 1;% 0.5; % sum of area under each pos/neg curve
         % Get positive part and normalize sum
         irfT_pos = irfTransient(pos_idx);
         irfT_pos = scf*normSum(irfT_pos);
-
+        
         % Get negative part and normalize sum
         irfT_neg = abs(irfTransient(neg_idx));
         irfT_neg = -scf*normSum(irfT_neg);
-
+        
         % Combine positive and negative parts
         nrfT2 = NaN(size(irfTransient));
         nrfT2(pos_idx) = irfT_pos;
         nrfT2(neg_idx) = irfT_neg;
-
-        f.temporal{2} = nrfT2;
-        f.temporal{3} = -f.temporal{2};
+        
+        f.temporal(1:length(nrfT2),2) = nrfT2;
+        f.temporal(1:length(nrfT2),3) = -nrfT2;
         f.names = {'sustained','transient_odd','transient_even'};
         f.scaleFactorNormSumTransChan = scf;
         clear nrfT2 irfT_pos irfT_neg
         
-        % Get nr of filters      
+        % Get nr of filters
         nfilters = length(f.names);
 
-        % Convolve spatial and temporal filter to get spatiotemporal filter
-        f.spatiotemporal = {};
-        
         % reshape pRFs from 1D to 2D
         prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
+        
+        % Convolve spatial and temporal filter to get spatiotemporal filter
+        f.spatiotemporal = zeros(size(prf2D,1),size(prf2D,2),nfilters);
+        
         for ii = 1:size(prf2D,3)
             
             % Get single spatial pRF
@@ -65,30 +68,27 @@ switch params.analysis.temporalModel
             
             % Convolve spatial pRF with each timepoint of temporal IRF
             for ff = 1:nfilters
-                currTemporalFilter = f.temporal{ff};
+                currTemporalFilter = f.temporal(:,ff);
                 for tt = 1:length(currTemporalFilter)
-                    tmp = conv2(currSpatialPRF,currTemporalFilter(tt),'same');
-                    f.spatiotemporal{ff}(:,tt) = tmp(:);
+                    tmp = convCut2(currSpatialPRF,currTemporalFilter(tt),size(currSpatialPRF,1));
+                    f.spatiotemporal(:,:,tt,ff) = tmp;
                 end
             end
         end
         f.spatial.prfs = prfs;
-        f.main = f.spatiotemporal;
         
     case '1ch-dcts'
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
-        f.main = f.spatial.prfs;
-        f.temporal{1} = 1;
+        f.temporal(1) = 1;
         f.names = {'linear'};
-
+        
     case '1ch-glm'
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
-        f.main = f.spatial.prfs;
-        f.temporal{1} = 1;
+        f.temporal(1) = 1;
         f.names = {'linear'};
-
+        
 end
 
 
