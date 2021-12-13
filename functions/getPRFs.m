@@ -48,7 +48,7 @@ if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
 
         % Store in params
         params.analysis.spatial.X = X(:);
-        params.analysis.spatial.Y = Y(:);
+        params.analysis.spatial.Y = -1*Y(:);
         
         % Clear some memory
         clear XYGrid X Y
