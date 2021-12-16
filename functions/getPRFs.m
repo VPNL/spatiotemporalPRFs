@@ -40,25 +40,6 @@ if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.s
     params.analysis.spatial.pRFModelType = 'unitVolume';
 end
 
-% Get the support grid for the pRF:
-if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
-    if ~isfield(params.analysis, 'X') || isempty(params.analysis.X)
-        XYGrid = -params.analysis.spatial.fieldSize:params.analysis.spatial.sampleRate:params.analysis.spatial.fieldSize;
-        [X,Y]  = meshgrid(XYGrid,XYGrid);
-
-        % Store in params
-        params.analysis.spatial.X = X(:);
-        params.analysis.spatial.Y = -1*Y(:);
-        
-        % Clear some memory
-        clear XYGrid X Y
-    else
-        params.analysis.spatial.X = params.analysis.X;
-        params.analysis.spatial.Y = params.analysis.Y;
-    end
-
-end
-
 % Assume circular pRFs if no sigma minor is defined
 if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
     if ~isfield(params.analysis.spatial.lh,'sigmaMinor')
@@ -109,50 +90,93 @@ switch params.analysis.spatial.pRFModelType
         % This function normalizes the volume under the 2D gaussian and
         % truncates pRF at 5 SD. All pRFs will have a volume of 1 (or close
         % to 1)
-        for h = 1:length(hemis)
-            
-            rf = pmGaussian2d(...
-                params.analysis.spatial.(hemis{h}).X, ...
-                params.analysis.spatial.(hemis{h}).Y, ...
-                params.analysis.spatial.(hemis{h}).sigmaMajor, ...
-                params.analysis.spatial.(hemis{h}).sigmaMinor, ...
-                params.analysis.spatial.(hemis{h}).theta, ...
-                params.analysis.spatial.(hemis{h}).x0, ...
-                params.analysis.spatial.(hemis{h}).y0);
-            prfs = cat(2,prfs,rf);
+        if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
+            for h = 1:length(hemis)
+                rf = pmGaussian2d(...
+                    params.analysis.spatial.(hemis{h}).X, ...
+                    params.analysis.spatial.(hemis{h}).Y, ...
+                    params.analysis.spatial.(hemis{h}).sigmaMajor, ...
+                    params.analysis.spatial.(hemis{h}).sigmaMinor, ...
+                    params.analysis.spatial.(hemis{h}).theta, ...
+                    params.analysis.spatial.(hemis{h}).x0, ...
+                    params.analysis.spatial.(hemis{h}).y0);
+                prfs = cat(2,prfs,rf);
+            end
+        else
+            prfs = pmGaussian2d(...
+                params.analysis.spatial.X, ...
+                params.analysis.spatial.Y, ...
+                params.analysis.spatial.sigmaMajor, ...
+                params.analysis.spatial.sigmaMinor, ...
+                params.analysis.spatial.theta, ...
+                params.analysis.spatial.x0, ...
+                params.analysis.spatial.y0);
         end
     case 'unitHeight'
         % This function does NOT normalize the volume under the 2D gaussian
         % but will truncate pRF at 5 SD. All pRFs will have a height of 1.
-        
-        for h = 1:length(hemis)
-            rf = rfGaussian2d(...
-                params.analysis.spatial.(hemis{h}).X, ...
-                params.analysis.spatial.(hemis{h}).Y, ...
-                params.analysis.spatial.(hemis{h}).sigmaMajor, ...
-                params.analysis.spatial.(hemis{h}).sigmaMinor, ...
-                params.analysis.spatial.(hemis{h}).theta, ...
-                params.analysis.spatial.(hemis{h}).x0, ...
-                params.analysis.spatial.(hemis{h}).y0);
-            
-            for n = 1:numVoxels
-                if params.analysis.spatial.trimRFFlag
-                    % Mask RF at 5 sd to remove trailing edge
-                    SDcutoff = 5;
-                    % Define radius
-                    r = (params.analysis.spatial.(hemis{h}).sigmaMajor(n)*SDcutoff)./params.analysis.spatial.sampleRate;
-                    ctr = 1+(max(params.analysis.spatial.X(:))/params.analysis.spatial.sampleRate);
-                    center = ctr + [params.analysis.spatial.(hemis{h}).y0(n); ...
-                                    params.analysis.spatial.(hemis{h}).x0(n)] ./params.analysis.spatial.sampleRate;
-                    
-                    thisRF = reshape(rf(:,n),[sqrt(size(rf,1)),sqrt(size(rf,1))]);
-                    mask = logical(makecircleimage(size(thisRF,1),r, [],[],[],[],center));
-                    rf(:,n) = thisRF.*mask;
+        if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
+            for h = 1:length(hemis)
+                rf = rfGaussian2d(...
+                    params.analysis.spatial.(hemis{h}).X, ...
+                    params.analysis.spatial.(hemis{h}).Y, ...
+                    params.analysis.spatial.(hemis{h}).sigmaMajor, ...
+                    params.analysis.spatial.(hemis{h}).sigmaMinor, ...
+                    params.analysis.spatial.(hemis{h}).theta, ...
+                    params.analysis.spatial.(hemis{h}).x0, ...
+                    params.analysis.spatial.(hemis{h}).y0);
+                
+                for n = 1:numVoxels
+                    if params.analysis.spatial.trimRFFlag
+                        % Mask RF at 5 sd to remove trailing edge
+                        SDcutoff = 5;
+                        % Define radius
+                        r = (params.analysis.spatial.(hemis{h}).sigmaMajor(n)*SDcutoff)./params.analysis.spatial.sampleRate;
+                        ctr = 1+(max(params.analysis.spatial.X(:))/params.analysis.spatial.sampleRate);
+                        center = ctr + [params.analysis.spatial.(hemis{h}).y0(n); ...
+                            params.analysis.spatial.(hemis{h}).x0(n)] ./params.analysis.spatial.sampleRate;
+                        
+                        thisRF = reshape(rf(:,n),[sqrt(size(rf,1)),sqrt(size(rf,1))]);
+                        mask = logical(makecircleimage(size(thisRF,1),r, [],[],[],[],center));
+                        rf(:,n) = thisRF.*mask;
+                    end
                 end
+                
+                prfs = cat(2,prfs,rf);
             end
-            
-            prfs = cat(2,prfs,rf);
+        else
+                rf = rfGaussian2d(...
+                    params.analysis.spatial.X, ...
+                    params.analysis.spatial.Y, ...
+                    params.analysis.spatial.sigmaMajor, ...
+                    params.analysis.spatial.sigmaMinor, ...
+                    params.analysis.spatial.theta, ...
+                    params.analysis.spatial.x0, ...
+                    params.analysis.spatial.y0);
+                
+                for n = 1:numVoxels
+                    if params.analysis.spatial.trimRFFlag
+                        % Mask RF at 5 sd to remove trailing edge
+                        SDcutoff = 5;
+                        % Define radius
+                        r = (params.analysis.spatial.sigmaMajor(n)*SDcutoff)./params.analysis.spatial.sampleRate;
+                        ctr = 1+(max(params.analysis.spatial.X(:))/params.analysis.spatial.sampleRate);
+                        center = ctr + [params.analysis.spatial.y0(n); ...
+                            params.analysis.spatial.x0(n)] ./params.analysis.spatial.sampleRate;
+                        
+                        thisRF = reshape(rf(:,n),[sqrt(size(rf,1)),sqrt(size(rf,1))]);
+                        mask = logical(makecircleimage(size(thisRF,1),r, [],[],[],[],center));
+                        thisRF = thisRF.*mask;
+                        rf(:,n) = thisRF(:);
+                    end
+                end
+                
+                prfs = rf;
         end
+end
+
+if params.analysis.spatial.sparsifyFlag
+    prfs = sparse(prfs);
 end
 
 % If requested, remove no stim pixels
