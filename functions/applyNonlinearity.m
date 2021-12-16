@@ -22,7 +22,7 @@ function [nonLinearResponse, params] = applyNonlinearity(prfResponse,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %      SKIP NON LINEARITY     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if strcmp(params.analysis.temporalModel,'1ch-glm')
+if strcmp(params.analysis.temporalModel,'1ch-glm') || strcmp(params.analysis.temporalModel,'Adelson-Bergen')
     nonLinearResponse = prfResponse;
     params.analysis.nonlinearity = 'none';
 end

@@ -17,21 +17,41 @@ function st_prfResponse = getPRFStimResponse(stim, linearPRFFilters, params)
 
 %% First spatial
 % Get predicted pRF time series: inner product between spatial rf and 3D stim
-if params.analysis.spatial.sparsifyFlag
-    s_prfResponse = full(stim'*sparse(linearPRFFilters.spatial.prfs));
-else
-    s_prfResponse = stim'*linearPRFFilters.spatial.prfs; % time x voxels
-end
+s_prfResponse = full(stim'*linearPRFFilters.spatial.prfs); % time x voxels
+
 
 %% Then temporal
 % Get predicted pRF time series: convolve spatial pRF response
 % and temporal filter
-
-st_prfResponse = [];
+st_prfResponse = zeros(size(s_prfResponse,1),size(s_prfResponse,2),length(linearPRFFilters.names));
 for n = 1:length(linearPRFFilters.names)
     st_prfResponse(:,:,n) = convCut2(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
 end
 
 return
         
-    
+
+%%
+ 
+%  plot(squeeze(st_prfResponse))
+% %%
+% subplot(211)
+% plot(stim(1,:)/10000);hold on;
+% plot(st_prfResponse(:,1,1)); hold on;
+% subplot(212)
+% plot(stim(1,:)/10000);hold on;
+% plot(st_prfResponse(:,1,2)); hold on;
+% plot(st_prfResponse(:,1,3)); hold on;
+% 
+% %%
+% subplot(211)
+% plot(stim(1,:)/10000);hold on;
+% plot(st_prfResponse(:,1,1)); hold on;
+% plot(st_prfResponse(:,1,2)); hold on;
+% 
+% subplot(212)
+% plot(stim(1,:)/10000);hold on;
+% plot(st_prfResponse(:,1,2)); hold on;
+% plot(st_prfResponse(:,1,3)); hold on;
+% 
+
