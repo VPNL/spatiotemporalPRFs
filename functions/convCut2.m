@@ -14,9 +14,9 @@ function output = convCut2(tc, impulse, nTerms)
 
 %%
 
-output = conv2(squeeze(tc), squeeze(impulse), 'full');
+output = convn(squeeze(tc), squeeze(impulse), 'full');
 
-output = output(1:nTerms,:);
+output = output(1:nTerms,:,:);
 
 
 end
