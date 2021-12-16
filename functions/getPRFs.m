@@ -175,6 +175,10 @@ switch params.analysis.spatial.pRFModelType
         end
 end
 
+if params.analysis.spatial.sparsifyFlag
+    prfs = sparse(prfs);
+end
+
 % If requested, remove no stim pixels
 if ~isempty(params.analysis.spatial.keepPixels)
     prfs = prfs(keepPixels,:);

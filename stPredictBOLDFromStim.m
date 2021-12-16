@@ -91,9 +91,8 @@ if params.analysis.normNeuralChan
 end
 
 %% 6. Compute spatiotemporal BOLD response in TRs
-
 % Define hrf
-hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
+hrf = getHRF(params);
 
 % Convolve neural response with HRF per channel, and downsample to TR
 predBOLD = getPredictedBOLDResponse(predNeural, hrf, params);

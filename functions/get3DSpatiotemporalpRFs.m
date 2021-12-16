@@ -54,28 +54,71 @@ switch params.analysis.temporalModel
         
         % Get nr of filters
         nfilters = length(f.names);
+        
+        %%%% commented out for now. To reduce computation time. %%%%%%%%
 
         % reshape pRFs from 1D to 2D
-        prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
+%         prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
+        
         
         % Convolve spatial and temporal filter to get spatiotemporal filter
-        f.spatiotemporal = zeros(size(prf2D,1),size(prf2D,2),nfilters);
+        %         f.spatiotemporal = zeros(size(prf2D,1),size(prf2D,2),nfilters);
         
-        for ii = 1:size(prf2D,3)
-            
-            % Get single spatial pRF
-            currSpatialPRF = prf2D(:,:,ii);
-            
-            % Convolve spatial pRF with each timepoint of temporal IRF
-            for ff = 1:nfilters
-                currTemporalFilter = f.temporal(:,ff);
-                for tt = 1:length(currTemporalFilter)
-                    tmp = convCut2(currSpatialPRF,currTemporalFilter(tt),size(currSpatialPRF,1));
-                    f.spatiotemporal(:,:,tt,ff) = tmp;
-                end
-            end
-        end
+        % commented out for now. To reduce computation time.
+        %         for ii = 1:size(prf2D,3)
+        %
+        %             % Get single spatial pRF
+        %             currSpatialPRF = prf2D(:,:,ii);
+        %
+        %             % Convolve spatial pRF with each timepoint of temporal IRF
+        %             for ff = 1:nfilters
+        %                 currTemporalFilter = f.temporal(:,ff);
+        %                 for tt = 1:length(currTemporalFilter)
+        %                     tmp = convCut2(currSpatialPRF,currTemporalFilter(tt),size(currSpatialPRF,1));
+        %                     f.spatiotemporal(:,:,tt,ff) = tmp;
+        %                 end
+        %             end
+        %         end
         f.spatial.prfs = prfs;
+        
+    case 'Adelson-Bergen'
+        f.spatial.prfs = prfs;
+%         for n = 1:10
+%             f.temporal(:,n) = 2*temp_imp_resp(n,22,[0:tsz]'/tsz);
+%             f.names{n} = n;
+%         end
+        prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
+        
+        sfilt = upBlur([0 0 0.107517 0.074893 -0.469550 0 ...
+            0.469550 -0.074893 -0.107517 0 0]);
+        sdfilt = upBlur([0 0 0.201624 -0.424658 -0.252747 0.940351 ...
+            -0.252747 -0.424658 0.201624 0 0]/1.8);
+        
+        tsz = 20*1000;
+        tfilt = 2*temp_imp_resp(5,22,[0:tsz]'/tsz);
+        tdfilt = temp_imp_resp(2.5,22,[0:tsz]'/tsz)/2.5;
+        
+        f1= tfilt*prfs';
+        f2= tdfilt*prfs';
+        subplot(211); imagesc(f1);
+        subplot(212); imagesc(f2);
+
+%         even_slow = tfilt * sdfilt;
+%         even_fast = tdfilt * sdfilt ;
+%         odd_slow = tfilt * sfilt ;
+%         odd_fast = tdfilt * sfilt ;
+
+        f.temporal(:,1) = tfilt;
+        f.temporal(:,2) = tdfilt;
+        
+%         leftward_1=odd_fast+even_slow;
+%         leftward_2=-odd_slow+even_fast;
+%         rightward_1=-odd_fast+even_slow;
+%         rightward_2=odd_slow+even_fast;
+
+        f.spatiotemporal()
+
+%         f.names = {'fast','slow'};
         
     case '1ch-dcts'
         % Just keep spatial filter for now

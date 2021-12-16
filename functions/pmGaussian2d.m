@@ -136,8 +136,9 @@ for ii = 1:size(RF,2)
 
     RFfull = RFfull ./ (sigmaMajor(ii) .* 2 .* pi .* sigmaMinor(ii));
     % - Calculate the full RF area
-    sRFfull = sum(RFfull(:));
-
+    sRFfull = sum( RFfull , 'all' );
+    
+    
     % - Normalize our RF with the full RF value we just obtained
     RF(:,ii)  = RF_unitVolume./ sRFfull;
 end

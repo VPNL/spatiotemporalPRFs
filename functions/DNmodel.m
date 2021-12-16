@@ -51,27 +51,41 @@ numrsp         = linrsp;
 poolrsp        = linrsp;
 demrsp         = linrsp;
 finalneuralrsp = linrsp;
+% 
+% for n = 1:size(prfResponse,3)
+%     for ii = 1 : size(prfResponse, 2)
+%         % ADD SHIFT TO THE STIMULUS
+%         if param.shift > 0
+%             sft   = round(param.shift * (1/dt));
+%             tmp   = padarray(prfResponse(:,ii,jj), [0, sft], 0, 'pre');
+%             prfResponse(:, ii, jj) = tmp(1 : size(prfResponse, 1));
+%         end
+%         
+%         % COMPUTE THE NORMALIZATION NUMERATOR
+%         linrsp(:, ii, jj)  = convCut(prfResponse(:, ii, jj)', irf, t_lth);
+%         numrsp(:, ii, jj)  = linrsp(:, ii, jj).^param.n;
+%         
+%         % COMPUTE THE NORMALIZATION DENOMINATOR
+%         poolrsp(:, ii, jj) = convCut(linrsp(:, ii, jj), irf_norm, t_lth);
+%         demrsp(:, ii, jj)  = param.sigma.^param.n + poolrsp(:, ii, jj).^param.n;
+%         
+%         % COMPUTE THE NORMALIZATION RESPONSE
+%         finalneuralrsp(:, ii, jj) = param.scale.*(numrsp(:, ii, jj)./demrsp(:, ii, jj));
+%     end
+% end
 
-for n = 1:size(prfResponse,3)
-    for ii = 1 : size(prfResponse, 2)
-        % ADD SHIFT TO THE STIMULUS
-        if param.shift > 0
-            sft   = round(param.shift * (1/dt));
-            tmp   = padarray(prfResponse(:,ii,jj), [0, sft], 0, 'pre');
-            prfResponse(:, ii, jj) = tmp(1 : size(prfResponse, 1));
-        end
-        
-        % COMPUTE THE NORMALIZATION NUMERATOR
-        linrsp(:, ii, jj)  = convCut(prfResponse(:, ii, jj)', irf, t_lth);
-        numrsp(:, ii, jj)  = linrsp(:, ii, jj).^param.n;
-        
-        % COMPUTE THE NORMALIZATION DENOMINATOR
-        poolrsp(:, ii, jj) = convCut(linrsp(:, ii, jj), irf_norm, t_lth);
-        demrsp(:, ii, jj)  = param.sigma.^param.n + poolrsp(:, ii, jj).^param.n;
-        
-        % COMPUTE THE NORMALIZATION RESPONSE
-        finalneuralrsp(:, ii, jj) = param.scale.*(numrsp(:, ii, jj)./demrsp(:, ii, jj));
-    end
+for ii = 1 : size(prfResponse, 2)
+    
+    % COMPUTE THE NORMALIZATION NUMERATOR
+    linrsp(:, ii)  = convCut(prfResponse(:, ii)', irf, t_lth);
+    numrsp(:, ii)  = linrsp(:, ii).^param.n;
+    
+    % COMPUTE THE NORMALIZATION DENOMINATOR
+    poolrsp(:, ii) = convCut(linrsp(:, ii), irf_norm, t_lth);
+    demrsp(:, ii)  = param.sigma.^param.n + poolrsp(:, ii).^param.n;
+    
+    % COMPUTE THE NORMALIZATION RESPONSE
+    finalneuralrsp(:, ii) = param.scale.*(numrsp(:, ii)./demrsp(:, ii));
 end
 
 % Store output in result variable

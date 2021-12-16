@@ -89,6 +89,11 @@ else % load default temporal params if Constant file is not there
 %             else % go with default
                 p.exponent          = 0.5;  % nonlinear compressive exponent for spatiotemporal nonlinearity
 %             end
+
+        case 'Adelson-Bergen'
+            p.num_channels = 2;
+            p.fs           = 1000; % sample rate (Hz)
+
     end
     
     % Pass values to params
