@@ -134,6 +134,11 @@ switch params.analysis.temporalModel
         
 end
 
+% deal with GPU
+if params.useGPU == 1
+    f.spatial.prfs  = gpuArray(full(f.spatial.prfs));
+    f.temporal      = gpuArray(f.temporal);
+end
 
 
 

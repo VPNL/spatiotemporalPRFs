@@ -36,7 +36,7 @@ if params.analysis.reluFlag
     % apply it to each channel prf response
     reluResponse = NaN(size(prfResponse));
     for n = 1:size(prfResponse,3)
-        reluResponse(:,:,n) = relu(prfResponse(:,:,n), params.analysis.relu.slope, params.analysis.relu.thresh);
+        reluResponse(:,:,n,:) = relu(prfResponse(:,:,n,:), params.analysis.relu.slope, params.analysis.relu.thresh);
     end
 else
     fprintf(sprintf('[%s]: No ReLU applied!',mfilename))
