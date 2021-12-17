@@ -101,21 +101,23 @@ switch regressionType
              Ytest         = Y(testSet(:),:);
              
              for n = 1:size(Xtrain,2)
-                 % Regress predictions using fractional ridge regression
-                 lm = tch_glm_fracridge(Ytrain(:,n),squeeze(Xtrain(:,n,:)), alpha);
-                 lm.alphas = alpha;
-                 
-                 for aa = 1:length(lm.alphas)
-                     % Get predicted response from model
-                     splithalfModelPrediction(nc,n,aa,:) = squeeze(Xtest(:,n,:))*lm.betas(:,aa);
-                     % Compute R2 (coefficient of determination)
-                     R2_alpha(nc,n,aa)  = computeCoD(Ytest(:,n),squeeze(splithalfModelPrediction(nc,n,aa,:)));
+                 if ~any(isnan(Xtrain(:,n,1))) % assuming that if one channel is nan, all are
+                     % Regress predictions using fractional ridge regression
+                     lm = tch_glm_fracridge(Ytrain(:,n),squeeze(Xtrain(:,n,:)), alpha);
+                     lm.alphas = alpha;
+
+                     for aa = 1:length(lm.alphas)
+                         % Get predicted response from model
+                         splithalfModelPrediction(nc,n,aa,:) = squeeze(Xtest(:,n,:))*lm.betas(:,aa);
+                         % Compute R2 (coefficient of determination)
+                         R2_alpha(nc,n,aa)  = computeCoD(Ytest(:,n),squeeze(splithalfModelPrediction(nc,n,aa,:)));
+                     end
                  end
              end
         end
         
     % Pick alpha that gives the highest R averaged across folds  
-    [~, idx] = max(max(mean(R2_alpha)));
+    [~, idx] = max(max(mean(R2_alpha, 'omitnan'),[], 'omitnan'),[], 'omitnan');
     bestAlpha = lm.alphas(idx);
     clear lm
     lm = [];
