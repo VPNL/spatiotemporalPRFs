@@ -89,7 +89,8 @@ else % load default temporal params if Constant file is not there
 %             else % go with default
                 p.exponent          = 0.5;  % nonlinear compressive exponent for spatiotemporal nonlinearity
 %             end
-
+            params.analysis.combineNeuralChan = [1 2 2]; % keep sustained channel and combine the on and off-transient channels
+        
         case 'Adelson-Bergen'
             p.num_channels = 2;
             p.fs           = 1000; % sample rate (Hz)
