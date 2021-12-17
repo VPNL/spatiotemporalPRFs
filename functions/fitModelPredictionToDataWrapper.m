@@ -41,7 +41,8 @@ data            = p.Results.data;
 predictions     = p.Results.predictions;
 alpha           = p.Results.alpha;
 regressionType  = p.Results.regressionType;
- 
+kFolds          = p.Results.kFolds;
+
 % Derive dimensions of data and predictions
 numTimePoints = size(data,1);
 numVoxels     = size(data,2);
