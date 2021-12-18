@@ -23,25 +23,25 @@ function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
 %    [X,Y] = meshgrid(x,y);
 %    sigma = 5;  % Deg
 %    rf = pmGaussian2d(X,Y,sigma);
-% 
+%
 
 if nargin ~= 7
     if ~exist('X', 'var') || isempty(X),
         error('Must define X grid');
     end
-
+    
     if ~exist('Y', 'var') || isempty(Y),
         error('Must define Y grid');
     end
-
+    
     if ~exist ('sigmaMajor', 'var') || isempty(sigmaMajor),
         error('Must scale on major axis');
     end
-
+    
     if ~exist ('sigmaMinor', 'var') || isempty(sigmaMinor),
         sigmaMinor = sigmaMajor;
     end
-
+    
     if ~exist ('theta', 'var') || isempty(theta), theta = false; end
     if ~exist ('x0', 'var') || isempty(x0),       x0 = 0;    end
     if ~exist ('y0', 'var') || isempty(y0),       y0 = 0;    end
@@ -54,17 +54,17 @@ end
 if numel(sigmaMajor)~=1
     sz1 = numel(X);
     sz2 = numel(sigmaMajor);
-
+    
     X   = repmat(X(:),1,sz2);
     Y   = repmat(Y(:),1,sz2);
-
+    
     sigmaMajor = repmat(sigmaMajor(:)',sz1,1);
     sigmaMinor = repmat(sigmaMinor(:)',sz1,1);
-
+    
     if any(theta(:))
         theta = repmat(theta(:)',sz1,1);
     end
-
+    
     x0 = repmat(x0(:)',sz1,1);
     y0 = repmat(y0(:)',sz1,1);
 end
@@ -89,58 +89,62 @@ end
 % Make gaussian on current grid
 RF  = exp( -.5 * ((Y ./ sigmaMajor).^2 + (X ./ sigmaMinor).^2));
 
+% Normalize the Gaussian.
+% GLU 2020-01-31
+% The idea is that if you stimulate the entire RF you will
+% always get the same activation, independent of the RF parameters.
+
+%     % This will give a volume of 1, rergardless of sampling, for all cases
+%     RF_unitVolume = RF(:,ii) ./ (sigmaMajor(ii) .* 2 .* pi .* sigmaMinor(ii));
+RF_unitVolume = RF ./ (sigmaMajor .* 2 .* pi .* sigmaMinor);
+
+% From now on, new (GLU 2020-01-31)
+% We want the area to be 1.
+% The idea is that if we multiply it with a full fov stimuli, the result will be
+% one (and then using a normalized HRF, we can have meaningful BOLD values).
+
+% Implementation:
+% - Gaussians are infinite (they can go until machine precision)
+% - Decide here to truncate until 4 SD values, so that 99.994% of values are inside
+sigmaMajorLimit = 5;
+% - Calculate, in the same sampled grid,
+%   the values corresponding to 4 SD.
+% ---- Calculate grid values
+minVal = Yorig(1,1);
+maxVal = Yorig(end,1);
+nVal   = size(Yorig,2);
+sampleRate = Yorig(2,1) - Yorig(1,1);
+fieldRange = maxVal - minVal + sampleRate;
 for ii = 1:size(RF,2)
-    % Normalize the Gaussian.
-    % GLU 2020-01-31
-    % The idea is that if you stimulate the entire RF you will
-    % always get the same activation, independent of the RF parameters.
-
-    % This will give a volume of 1, rergardless of sampling, for all cases
-    RF_unitVolume = RF(:,ii) ./ (sigmaMajor(ii) .* 2 .* pi .* sigmaMinor(ii));
-
-    % From now on, new (GLU 2020-01-31)
-    % We want the area to be 1.
-    % The idea is that if we multiply it with a full fov stimuli, the result will be
-    % one (and then using a normalized HRF, we can have meaningful BOLD values).
-
-    % Implementation:
-    % - Gaussians are infinite (they can go until machine precision)
-    % - Decide here to truncate until 4 SD values, so that 99.994% of values are inside
-    sigmaMajorLimit = 5;
-    % - Calculate, in the same sampled grid, 
-    %   the values corresponding to 4 SD. 
-    % ---- Calculate grid values
-    minVal = Yorig(1,1);
-    maxVal = Yorig(end,1);
-    nVal   = size(Yorig,2);
-    sampleRate = Yorig(2,1) - Yorig(1,1);
-    fieldRange = maxVal - minVal + sampleRate;
-    Xfull = Xorig;
-    Yfull = Yorig;
-
+    
+    Yfull = reshape(Yorig(:,ii),[sqrt(size(Yorig,1)),sqrt(size(Yorig,1))]);
+    
     % --- Calculate how big the mesh needs to be for a full RF
-    xlimit = sigmaMajorLimit * sigmaMajor(ii);
+    %     xlimit = sigmaMajorLimit * sigmaMajor(ii);
+    xlimit = sigmaMajorLimit * sigmaMajor(:,ii);
+    
     tmpx   = Yfull(:,1);
     while xlimit > max(tmpx)
         % Grow it in 10% increments to avoid making the mesh too big
         fieldRange = 1.1*fieldRange;
         tmpx       = [-fieldRange:sampleRate:fieldRange];
     end
-
+    
     % - Now that we know that the grid can hold the full RF
     %   Calculate the full RF and calculate the area underneath it
     tmpy = tmpx;
-    [Xfull,Yfull] = meshgrid(tmpx, tmpy); 
-
-    RFfull = exp( -.5 * ((Yfull ./ sigmaMajor(ii)).^2 + (Xfull ./ sigmaMinor(ii)).^2));
-
-    RFfull = RFfull ./ (sigmaMajor(ii) .* 2 .* pi .* sigmaMinor(ii));
+    [Xfull,Yfull] = meshgrid(tmpx, tmpy);
+    
+    %     RFfull = exp( -.5 * ((Yfull ./ sigmaMajor(ii)).^2 + (Xfull ./ sigmaMinor(ii)).^2));
+    RFfull = exp( -.5 * ((Yfull ./ sigmaMajor(1,ii)).^2 + (Xfull ./ sigmaMinor(1,ii)).^2));
+    
+    RFfull = RFfull ./ (sigmaMajor(1,ii) .* 2 .* pi .* sigmaMinor(1,ii));
     % - Calculate the full RF area
     sRFfull = sum( RFfull , 'all' );
     
     
     % - Normalize our RF with the full RF value we just obtained
-    RF(:,ii)  = RF_unitVolume./ sRFfull;
+    RF(:,ii)  = RF_unitVolume(:,ii)./ sRFfull;
 end
 
 end

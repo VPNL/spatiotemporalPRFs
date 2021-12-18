@@ -15,8 +15,8 @@ function predBOLD = getPredictedBOLDResponse(predNeural, hrf, params)
 %                           BOLD response (s)
 % 
 for n = 1:size(predNeural,3) 
-    predBOLD_tmp = convCut2(predNeural(:,:,n),hrf,size(predNeural,1));
-    predBOLD(:,:,n) = downsample(predBOLD_tmp,  params.analysis.temporal.tr*params.analysis.temporal.fs);
+    predBOLD_tmp = convCut2(predNeural(:,:,n,:),hrf,size(predNeural,1));
+    predBOLD(:,:,n,:) = downsample(predBOLD_tmp,  params.analysis.temporal.tr*params.analysis.temporal.fs);
 end
 
 return

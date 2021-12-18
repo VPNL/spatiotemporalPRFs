@@ -20,7 +20,7 @@ function st_prfResponse = getPRFStimResponse(stim, linearPRFFilters, params)
 %% First spatial
 % Get predicted pRF time series: inner product between spatial rf and 3D stim
 if  params.useGPU
-    s_prfResponse = pagefun(@mtimes, linearPRFFilters.spatial.prfs',stim);
+    s_prfResponse = pagefun(@mtimes, full(linearPRFFilters.spatial.prfs)',stim);
     s_prfResponse = permute(s_prfResponse,[2 1 3]); % time X voxel X run
 else
     s_prfResponse =zeros(size(stim,2),size(linearPRFFilters.spatial.prfs,2),size(stim,3));
@@ -36,11 +36,17 @@ end
 % and temporal filter
 st_prfResponse = zeros(size(s_prfResponse,1),size(s_prfResponse,2), ...
     length(linearPRFFilters.names),size(s_prfResponse,3)); 
+if  params.useGPU
+    st_prfResponse = gpuArray(st_prfResponse);
+end
 % st_prfResponse => time X voxel X channel X run
 for n = 1:length(linearPRFFilters.names)
     st_prfResponse(:,:,n,:) = convCut2(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
 end
 
-return
+% subplot(131); plot((squeeze(st_prfResponse(:,1,1,1)))); hold on;
+% subplot(132); plot((squeeze(st_prfResponse(:,1,1,2)))); hold on;
+% subplot(133); plot((squeeze(st_prfResponse(:,1,1,3)))); hold on;
 
+return
 

@@ -86,7 +86,7 @@ end
 %% 5. Check if we want to normalize the max height of the neural channels
 if params.analysis.normNeuralChan
     for ii = 1:size(predNeural,3)
-        predNeural(:,:,ii) = normMax(predNeural(:,:,ii));
+        predNeural(:,:,ii,:) = normMax(predNeural(:,:,ii,:));
     end
 end
 

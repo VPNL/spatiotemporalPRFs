@@ -56,7 +56,7 @@ else % load default temporal params if Constant file is not there
             p.sigma        = 0.1;  % constant to avoid dividing by zero
             p.shift        = 0;    % shift onset of start response (in ms?)
             p.scale        = 1;    % scale factor of final neural response
-            
+
         case '2ch-exp-sig' % load 2ch-exp-sig (2ch) model params
             p.num_channels = 2;
             p.fs           = 1000;  % sample rate (Hz)

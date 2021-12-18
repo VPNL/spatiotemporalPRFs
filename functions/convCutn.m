@@ -13,6 +13,7 @@ function output = convCut2(tc, impulse, nTerms)
 % % DEPENDENCIES ----------------------------------------------
 
 %%
+% output = conv2(squeeze(tc), squeeze(impulse), 'full');
 
 output = convn(squeeze(tc), squeeze(impulse), 'full');
 

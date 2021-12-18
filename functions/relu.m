@@ -9,19 +9,38 @@ elseif length(varargin)==1
 elseif length(varargin)==2
     slope = varargin{1};
     thresh = varargin{2};
+elseif length(varargin)==3
+    slope = varargin{1};
+    thresh = varargin{2};
+    useGPU = varargin{3};
+
 end
 
 if isempty(thresh) || ~exist('thresh','var')
     thresh = 0;
 end 
 
+if isempty(useGPU) || ~exist('useGPU','var')
+    useGPU = 0;
+end 
+
 % Preallocate space for output
-output = zeros(size(input));
+if useGPU
+    output = zeros(size(input),"gpuArray");
+else
+    output = zeros(size(input));
+end
 
 % Keep points above threshold
-mask = input>thresh;
+
+mask = bsxfun(@gt,input,thresh);
+
 output(mask) = input(mask);
-output = slope.*output;
+output = bsxfun(@times,slope,output);
+
+
+% mask = input>thresh;
+% output = slope.*output;
 
 
 return

@@ -51,7 +51,19 @@ numrsp         = linrsp;
 poolrsp        = linrsp;
 demrsp         = linrsp;
 finalneuralrsp = linrsp;
-% 
+
+
+% COMPUTE THE NORMALIZATION NUMERATOR
+linrsp(:,:,1,:)  = convCut2(prfResponse, irf',t_lth);
+numrsp           = bsxfun(@power, linrsp, param.n);
+
+% COMPUTE THE NORMALIZATION DENOMINATOR
+poolrsp(:,:,1,:) = convCut2(linrsp, irf_norm', t_lth);
+demrsp(:,:,1,:)  = bsxfun(@power, param.sigma, param.n) + bsxfun(@power, poolrsp, param.n);
+result(:,:,1,:)  = bsxfun(@times, param.scale, bsxfun(@rdivide, numrsp, demrsp));
+
+
+
 % for n = 1:size(prfResponse,3)
 %     for ii = 1 : size(prfResponse, 2)
 %         % ADD SHIFT TO THE STIMULUS
@@ -73,23 +85,26 @@ finalneuralrsp = linrsp;
 %         finalneuralrsp(:, ii, jj) = param.scale.*(numrsp(:, ii, jj)./demrsp(:, ii, jj));
 %     end
 % end
+% 
+% for ii = 1 : size(prfResponse, 2)
+%     
+%     COMPUTE THE NORMALIZATION NUMERATOR
+%     linrsp(:, ii)  = convCut(prfResponse(:, ii)', irf, t_lth);
+%     numrsp(:, ii)  = linrsp(:, ii).^param.n;
+%     
+%     COMPUTE THE NORMALIZATION DENOMINATOR
+%     poolrsp(:, ii) = convCut(linrsp(:, ii), irf_norm, t_lth);
+%     demrsp(:, ii)  = param.sigma.^param.n + poolrsp(:, ii).^param.n;
+%     
+%     COMPUTE THE NORMALIZATION RESPONSE
+%     finalneuralrsp(:, ii) = param.scale.*(numrsp(:, ii)./demrsp(:, ii));
+% end
 
-for ii = 1 : size(prfResponse, 2)
-    
-    % COMPUTE THE NORMALIZATION NUMERATOR
-    linrsp(:, ii)  = convCut(prfResponse(:, ii)', irf, t_lth);
-    numrsp(:, ii)  = linrsp(:, ii).^param.n;
-    
-    % COMPUTE THE NORMALIZATION DENOMINATOR
-    poolrsp(:, ii) = convCut(linrsp(:, ii), irf_norm, t_lth);
-    demrsp(:, ii)  = param.sigma.^param.n + poolrsp(:, ii).^param.n;
-    
-    % COMPUTE THE NORMALIZATION RESPONSE
-    finalneuralrsp(:, ii) = param.scale.*(numrsp(:, ii)./demrsp(:, ii));
-end
 
-% Store output in result variable
-result = finalneuralrsp;
+
+
+% % Store output in result variable
+% result = finalneuralrsp;
 
 
 end
