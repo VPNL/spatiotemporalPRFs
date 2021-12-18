@@ -83,21 +83,39 @@ if params.analysis.zeroPadPredNeuralFlag
     end
 end
 
-%% 5. Check if we want to normalize the max height of the neural channels
+%% 5. Check if want to combine neural channels
+% combineNeuralChan should be a vector that list the order and summing of
+% runs. If all runs are unique, we would have a vector of [1:N channels].
+% If you want to combine the last two channels, you can write e.g. [1 2 2].
+if isfield(params.analysis,'combineNeuralChan') && ...
+        (length(params.analysis.combineNeuralChan) ~= length(unique(params.analysis.combineNeuralChan)))
+    uniqueRuns = unique(params.analysis.combineNeuralChan);
+    % Get new array, use same size to ensure dimensions are correct.
+    predNeuralComb = zeros(size(predNeural));
+    % Then truncate the 3 dimension (with channels) to the number of unique
+    % runs:
+    predNeuralComb = predNeuralComb(:,:,1:length(uniqueRuns),:);
+    for cb = 1:length(uniqueRuns)
+        predNeuralComb(:,:,uniqueRuns(cb)) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3);
+    end
+    predNeural = predNeuralComb;
+end
+
+%% 7. Check if we want to normalize the max height of the neural channels
 if params.analysis.normNeuralChan
     for ii = 1:size(predNeural,3)
         predNeural(:,:,ii,:) = normMax(predNeural(:,:,ii,:));
     end
 end
 
-%% 6. Compute spatiotemporal BOLD response in TRs
+%% 8. Compute spatiotemporal BOLD response in TRs
 % Define hrf
 hrf = getHRF(params);
 
 % Convolve neural response with HRF per channel, and downsample to TR
 predBOLD = getPredictedBOLDResponse(predNeural, hrf, params);
 
-%% 5. Store predictions in struct
+%% 9. Store predictions in struct
 predictions.predBOLD    = predBOLD; 
 predictions.predNeural  = predNeural;
 predictions.params      = params;
@@ -105,14 +123,14 @@ predictions.prfs        = linearPRFModel.spatial.prfs;
 predictions.prfResponse = prfResponse;
 predictions.hrf         = hrf;
 
-%% 6. Save predictions if requested
+%% 10. Save predictions if requested
 if params.saveDataFlag
     fprintf('[%s]: Saving data.. \n', mfilename)
     save(params.analysis.predFile, '-struct', 'predictions', 'predBOLD','predNeural','params','prfs','prfResponse','hrf','-v7.3')
     fprintf('[%s]: Done!\n', mfilename)
 end
 
-%% 7. Print status
+%% 11. Print status
 fprintf('[%s]: Finished! Time: %d min.\t(%s)\n', ...
     mfilename, round(toc/60), datestr(now));
 
