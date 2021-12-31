@@ -37,7 +37,7 @@ if exist('Constants','var') == 2
     % Pass values to params
     params.analysis.temporal.model        = params.analysis.temporalModel;
     params.analysis.temporal.fields       = fields;
-    params.analysis.temporal.fs           = fs;
+    params.analysis.temporal.fs           = fs; % todo: make one fs for both neural and HRF sampling rate
     params.analysis.temporal.param        = temporal_param;
     params.analysis.temporal.num_channels = num_channels;
     params.analysis.temporal.tr           = tr;
