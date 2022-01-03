@@ -91,12 +91,21 @@ if isfield(params.analysis,'combineNeuralChan') && ...
         (length(params.analysis.combineNeuralChan) ~= length(unique(params.analysis.combineNeuralChan)))
     uniqueRuns = unique(params.analysis.combineNeuralChan);
     % Get new array, use same size to ensure dimensions are correct.
-    predNeuralComb = zeros(size(predNeural));
+    if params.useGPU
+        predNeuralComb = zeros(size(predNeural),"gpuArray");
+    else
+    	predNeuralComb = zeros(size(predNeural));
+    end
     % Then truncate the 3 dimension (with channels) to the number of unique
     % runs:
     predNeuralComb = predNeuralComb(:,:,1:length(uniqueRuns),:);
     for cb = 1:length(uniqueRuns)
-        predNeuralComb(:,:,uniqueRuns(cb)) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3);
+        % if we sum across multiple channels, we rescale the max to 1.
+        if sum(params.analysis.combineNeuralChan==uniqueRuns(cb))>1
+            predNeuralComb(:,:,uniqueRuns(cb)) = normMax(sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3));
+        else
+            predNeuralComb(:,:,uniqueRuns(cb)) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3);
+        end
     end
     predNeural = predNeuralComb;
 end
