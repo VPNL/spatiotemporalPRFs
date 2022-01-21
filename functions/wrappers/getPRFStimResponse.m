@@ -41,7 +41,7 @@ if  params.useGPU
 end
 % st_prfResponse => time X voxel X channel X run
 for n = 1:length(linearPRFFilters.names)
-    st_prfResponse(:,:,n,:) = convCut2(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
+    st_prfResponse(:,:,n,:) = convCutn(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
 end
 
 % subplot(131); plot((squeeze(st_prfResponse(:,1,1,1)))); hold on;

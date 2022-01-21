@@ -12,15 +12,21 @@ function [f, params] = get3DSpatiotemporalpRFs(params)
 % Written by ERK 2021 @ VPNL Stanford U
 
 %% Get spatial pRF filter
-[prfs, params] = getPRFs(params);
-
+if  ~isfield(params.analysis.spatial, 'values') || isempty(params.analysis.spatial.values)
+    [prfs, params] = getPRFs(params);
+else
+    prfs = params.analysis.spatial.values;
+end
 %% Get spatial or temporal pRF filter
 switch params.analysis.temporalModel
     case '3ch-stLN'
         x = params.analysis.temporal.param;
+        if ~isfield(x,'tau_t')
+           x.tau_t = x.tau_s;              
+        end
         % Create temporal IRFs for sustained and transient channel
         irfSustained = tch_irfs('S', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
-        irfTransient = tch_irfs('T', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
+        irfTransient = tch_irfs('T', x.tau_t, x.n1, x.n2, x.kappa, x.fs);
         
         f.temporal = zeros(max([length(irfSustained),length(irfTransient)]),3);
         
@@ -53,7 +59,7 @@ switch params.analysis.temporalModel
         clear nrfT2 irfT_pos irfT_neg
         
         % Get nr of filters
-        nfilters = length(f.names);
+%         nfilters = length(f.names);
         
         %%%% commented out for now. To reduce computation time. %%%%%%%%
 

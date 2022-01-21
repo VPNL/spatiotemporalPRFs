@@ -92,6 +92,7 @@ switch params.analysis.spatial.pRFModelType
         % to 1)
         if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
             for h = 1:length(hemis)
+
                 if ~isempty(params.analysis.spatial.(hemis{h}).x0)
                     rf = pmGaussian2d(...
                         params.analysis.spatial.(hemis{h}).X, ...
@@ -188,7 +189,7 @@ end
 
 % If requested, remove no stim pixels
 if ~isempty(params.analysis.spatial.keepPixels)
-    prfs = prfs(keepPixels,:);
+    prfs = prfs(params.analysis.spatial.keepPixels,:);
 end
 
 end

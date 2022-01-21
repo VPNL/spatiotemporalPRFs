@@ -41,7 +41,13 @@ switch optionNumber
         params.analysis.spatial.keepPixels = [];
         params.analysis.spatial.sparsifyFlag = true;
 
-
+    case 3 % import from mrVista
+        params.analysis.spatial.fieldSize = params.analysis.fieldSize;
+        params.analysis.spatial.sampleRate = params.analysis.sampleRate;
+        params.analysis.spatialModel = 'onegaussianFit';
+        params.analysis.spatial.pRFModelType = 'unitVolume';
+        params.analysis.spatial.keepPixels = params.stim.instimwindow;
+        params.analysis.spatial.sparsifyFlag = false;
 end
 
 

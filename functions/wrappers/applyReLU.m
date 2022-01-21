@@ -34,7 +34,11 @@ end
 
 if params.analysis.reluFlag
     % apply it to each channel prf response
-    reluResponse = NaN(size(prfResponse));
+    if params.useGPU ==1
+        reluResponse = NaN(size(prfResponse),'gpuArray');
+    else
+        reluResponse = NaN(size(prfResponse));
+    end
     for n = 1:size(prfResponse,3)
         reluResponse(:,:,n,:) = relu(prfResponse(:,:,n,:), ...
             params.analysis.relu.slope, params.analysis.relu.thresh, ...

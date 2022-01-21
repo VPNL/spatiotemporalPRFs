@@ -77,7 +77,7 @@ switch regressionType
                     'residual', NaN(size(X,1),1), 'var_covar', NaN(size(X,3),size(X,3)), 'resid_var', NaN, ...
                     'stdevs',NaN(1,size(X,3)),'sems',NaN(1,size(X,3)),'R2',zeros(1,1,'single'));
             end
-            
+
             % Store in struct
             lm = [lm, tmp];
             
@@ -136,7 +136,7 @@ switch regressionType
 
         % Compute Coefficient of Determination (R2), store R2 and beta
         tmp.R2 = computeCoD(Y(:,n),sumChannelPrediction(:,n));
-
+        
         % Store in struct
         tmp.alphas    = alpha;
         tmp.bestAlpha = bestAlpha;

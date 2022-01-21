@@ -1,4 +1,4 @@
-function hrf = getHRF(params)
+function [hrf,params] = getHRF(params)
 
 % Description: Grabs HRF according to the optionNumber
 % 1. SPM HRF
@@ -14,10 +14,10 @@ function hrf = getHRF(params)
 % Written by ISK 2021 @ VPNL Stanford U
 
 if ~isfield(params.analysis,'hrf')
-    params.analysis.hrf = 1;
+    params.analysis.hrf.type = 'spm';
 end
 
-switch params.analysis.hrf
+switch params.analysis.hrf.type
     case {1,'spm'}
         hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
     case {2,'vista'}
@@ -28,7 +28,7 @@ switch params.analysis.hrf
 end
 
 
-
+params.analysis.hrf.values = hrf;
 
 
 
