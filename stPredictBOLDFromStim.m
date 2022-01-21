@@ -113,6 +113,12 @@ if isfield(params.analysis,'combineNeuralChan') && ...
     predNeuralComb = predNeuralComb(:,:,1:length(uniqueRuns),:);
     for cb = 1:length(uniqueRuns)
         predNeuralComb(:,:,uniqueRuns(cb),:) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb),:),3);
+        % if we sum across multiple channels, we rescale the max to 1.
+        if sum(params.analysis.combineNeuralChan==uniqueRuns(cb))>1
+            predNeuralComb(:,:,uniqueRuns(cb)) = normMax(sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3));
+        else
+            predNeuralComb(:,:,uniqueRuns(cb)) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3);
+        end
     end
     predNeural = predNeuralComb;
 end
