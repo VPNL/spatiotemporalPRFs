@@ -49,9 +49,19 @@ predictions = stPredictBOLDFromStim(params,stim)
 %% 0. Print status
 tic
 predictions = struct();
-fprintf('[%s]: Computing BOLD predictions for %s %s model \n', ...
-    mfilename,params.analysis.spatialModel, params.analysis.temporalModel); drawnow;
 
+if ~isfield(params,'verbose')
+    params.verbose = 1;
+end
+
+if ~isfield(params,'useGPU')
+    params.useGPU = 0;
+end
+
+if params.verbose == 1
+    fprintf('[%s]: Computing BOLD predictions for %s %s model \n', ...
+        mfilename,params.analysis.spatialModel, params.analysis.temporalModel); drawnow;
+end
 %% 1. Create initial linear filters (spatio-, temporal-, or spatiotemporal pRFs)
 % Depending on model params, we either reconstruct a standard 2D Gaussian, 
 % CSS 2D Gaussian, or 3D spatiotemporal filter:
@@ -61,8 +71,10 @@ fprintf('[%s]: Computing BOLD predictions for %s %s model \n', ...
 [linearPRFModel, params] = get3DSpatiotemporalpRFs(params);
  
 nVoxels = size(linearPRFModel.spatial.prfs,2);
-fprintf('[%s]: Making model predictions for %d voxels/vertices \n',mfilename,nVoxels);
 
+if params.verbose == 1
+    fprintf('[%s]: Making model predictions for %d voxels/vertices \n',mfilename,nVoxels);
+end
 %% 2. Compute spatiotemporal response in milliseconds (pRF X Stim)
 % Get pRF time course (time in ms by voxels), for given pRF filter (xy in
 % pixels by voxels) and stimulus (xy in pixels  by time in ms)
@@ -91,27 +103,42 @@ if isfield(params.analysis,'combineNeuralChan') && ...
         (length(params.analysis.combineNeuralChan) ~= length(unique(params.analysis.combineNeuralChan)))
     uniqueRuns = unique(params.analysis.combineNeuralChan);
     % Get new array, use same size to ensure dimensions are correct.
-    predNeuralComb = zeros(size(predNeural));
+    if params.useGPU == 1
+        predNeuralComb = zeros(size(predNeural),'gpuArray');
+    else
+        predNeuralComb = zeros(size(predNeural));
+    end
     % Then truncate the 3 dimension (with channels) to the number of unique
     % runs:
     predNeuralComb = predNeuralComb(:,:,1:length(uniqueRuns),:);
     for cb = 1:length(uniqueRuns)
-        predNeuralComb(:,:,uniqueRuns(cb)) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb)),3);
+        predNeuralComb(:,:,uniqueRuns(cb),:) = sum(predNeural(:,:,params.analysis.combineNeuralChan==uniqueRuns(cb),:),3);
     end
     predNeural = predNeuralComb;
 end
 
 %% 7. Check if we want to normalize the max height of the neural channels
 if params.analysis.normNeuralChan
+    if  ndims(predNeural) == 4 && params.analysis.normAcrossRuns
+        predNeural = concatRuns(predNeural);
+    end
     for ii = 1:size(predNeural,3)
         predNeural(:,:,ii,:) = normMax(predNeural(:,:,ii,:));
+    end
+    if params.analysis.normAcrossRuns ==1
+        predNeural = reshape(predNeural, ...
+            [size(predNeural,1)/size(stim,3),size(stim,3), size(predNeural,2), size(predNeural,3)]);
+        predNeural = permute(predNeural,[1 3 4 2]); 
     end
 end
 
 %% 8. Compute spatiotemporal BOLD response in TRs
 % Define hrf
-hrf = getHRF(params);
-
+if ~isfield(params.analysis.hrf, 'values') || isempty(params.analysis.hrf.values)
+    [hrf,params] = getHRF(params);
+else
+    hrf = params.analysis.hrf.values;
+end
 % Convolve neural response with HRF per channel, and downsample to TR
 predBOLD = getPredictedBOLDResponse(predNeural, hrf, params);
 
@@ -131,8 +158,10 @@ if params.saveDataFlag
 end
 
 %% 11. Print status
-fprintf('[%s]: Finished! Time: %d min.\t(%s)\n', ...
-    mfilename, round(toc/60), datestr(now));
+if params.verbose == 1 
+    fprintf('[%s]: Finished! Time: %d min.\t(%s)\n', ...
+        mfilename, round(toc/60), datestr(now));
+end
 
 return
 

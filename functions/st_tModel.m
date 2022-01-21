@@ -28,7 +28,7 @@ switch tModel
     case {'glm','1ch-glm'}
         result  = linearModel(param, rfResponse, time);
     case {'DN','1ch-dcts'}
-        result  = DNmodel(param, rfResponse, time);
+        result  = DNmodel2(param, rfResponse, time);
     case {'2ch','2ch-exp-sig'}
         result  = twoChansmodel(param, rfResponse, time);
     case {'2ch-css-sig'}

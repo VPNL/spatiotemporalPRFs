@@ -9,14 +9,18 @@ if  isempty(verbose)
 end
 
 % stNonlin = @(x,n) 1./(1+exp(-(x.^n)));
-stNonlin = @(x,n) x.^n;
-Y = stNonlin(X,n);
-
+% stNonlin = @(x,n) x.^n;
+% Y2 = stNonlin(X,n);
+Y = zeros(size(X));
+for i=1:numel(n)
+    Y(:,i,:,:) = bsxfun(@power,X(:,i,:,:),n(i));
+end
 
 if verbose
     figure(101); clf; 
     x0 = [0:0.01:1];
-    plot(x0, stNonlin(x0,n(1)),'r', 'lineWidth',2);
+    Y = bsxfun(@power,X,n(1));
+    plot(x0, Y,'r', 'lineWidth',2);
     xlim([0 1]); ylim([0 1]);
     title('Static exponential nonlinearity')
 end

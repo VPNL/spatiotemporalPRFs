@@ -69,7 +69,7 @@ switch regressionType
             end
             
             % Get scaled predictions
-            sumChannelPrediction(:,n) = squeeze(X(:,n,:))*tmp.betas;
+            sumChannelPrediction(:,n) = sum(squeeze(X(:,n,:)).*tmp.betas,2);
              
             % Compute Coefficient of Determination (R2), store R2 and beta
             tmp.R2  = computeCoD(Y(:,n),sumChannelPrediction(:,n));
@@ -131,7 +131,7 @@ switch regressionType
 
         % Compute Coefficient of Determination (R2), store R2 and beta
         tmp.R2 = computeCoD(Y(:,n),sumChannelPrediction(:,n));
-
+        
         % Store in struct
         tmp.alphas    = alpha;
         tmp.bestAlpha = bestAlpha;

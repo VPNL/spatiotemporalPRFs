@@ -46,19 +46,23 @@ irf_norm = normSum(exp(-t_irf/param.tau2));
 %% COMPUTE THE NORMALIZATION RESPONSE
 
 % Preallocate space
-linrsp         = zeros(size(prfResponse));
+if  isgpuarray(prfResponse)
+    linrsp         = zeros(size(prfResponse),'gpuArray');
+else
+    linrsp         = zeros(size(prfResponse));
+end
 numrsp         = linrsp;
 poolrsp        = linrsp;
 demrsp         = linrsp;
-finalneuralrsp = linrsp;
+result         = linrsp;
 
 
 % COMPUTE THE NORMALIZATION NUMERATOR
-linrsp(:,:,1,:)  = convCut2(prfResponse, irf',t_lth);
-numrsp           = bsxfun(@power, linrsp, param.n);
+linrsp(:,:,1,:)  = convCutn(prfResponse, irf',t_lth);
+numrsp(:,:,1,:)  = bsxfun(@power, linrsp, param.n);
 
 % COMPUTE THE NORMALIZATION DENOMINATOR
-poolrsp(:,:,1,:) = convCut2(linrsp, irf_norm', t_lth);
+poolrsp(:,:,1,:) = convCutn(linrsp, irf_norm', t_lth);
 demrsp(:,:,1,:)  = bsxfun(@power, param.sigma, param.n) + bsxfun(@power, poolrsp, param.n);
 result(:,:,1,:)  = bsxfun(@times, param.scale, bsxfun(@rdivide, numrsp, demrsp));
 

@@ -1,5 +1,5 @@
 function predBOLD = getPredictedBOLDResponse(predNeural, hrf, params)
-% % Functoin to convolve neural prediction with hrf to get predicted BOLD 
+% % Functoin to convolve neural prediction with hrf to get predicted BOLD
 % response for each voxel
 %
 % INPUTS
@@ -13,9 +13,15 @@ function predBOLD = getPredictedBOLDResponse(predNeural, hrf, params)
 %                           neural response (hz)
 %                       - params.analysis.temporal.tr: repetition time of
 %                           BOLD response (s)
-% 
-for n = 1:size(predNeural,3) 
-    predBOLD_tmp = convCut2(predNeural(:,:,n,:),hrf,size(predNeural,1));
+%
+predBOLD = zeros(size(predNeural,1)/(params.analysis.temporal.tr*params.analysis.temporal.fs), ...
+    size(predNeural,2),size(predNeural,3),size(predNeural,4));
+if params.useGPU
+    predBOLD = gpuArray(predBOLD);
+end
+
+for n = 1:size(predNeural,3)
+    predBOLD_tmp = convCutn(predNeural(:,:,n,:),hrf,size(predNeural,1));
     predBOLD(:,:,n,:) = downsample(predBOLD_tmp,  params.analysis.temporal.tr*params.analysis.temporal.fs);
 end
 

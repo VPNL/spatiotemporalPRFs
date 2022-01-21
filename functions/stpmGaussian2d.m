@@ -1,4 +1,4 @@
-function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
+function RF = stpmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
 % pmGaussian2d - Create a two dimensional Gaussian receptive field,
 % this function is inherited from vistasoft/PRFmodel
 %
@@ -24,6 +24,7 @@ function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
 %    sigma = 5;  % Deg
 %    rf = pmGaussian2d(X,Y,sigma);
 %
+% fprintf('[%s]: Create pRFs.\n', mfilename)
 
 if nargin ~= 7
     if ~exist('X', 'var') || isempty(X),
@@ -105,25 +106,41 @@ RF_unitVolume = RF ./ (sigmaMajor .* 2 .* pi .* sigmaMinor);
 
 % Implementation:
 % - Gaussians are infinite (they can go until machine precision)
-% - Decide here to truncate until 4 SD values, so that 99.994% of values are inside
+% - Decide here to truncate until 5 SD values, so that 99.994% of values are inside
 sigmaMajorLimit = 5;
 % - Calculate, in the same sampled grid,
-%   the values corresponding to 4 SD.
+%   the values corresponding to 5 SD.
 % ---- Calculate grid values
 minVal = Yorig(1,1);
 maxVal = Yorig(end,1);
-nVal   = size(Yorig,2);
 sampleRate = Yorig(2,1) - Yorig(1,1);
 fieldRange = maxVal - minVal + sampleRate;
-for ii = 1:size(RF,2)
-    
-    Yfull = reshape(Yorig(:,ii),[sqrt(size(Yorig,1)),sqrt(size(Yorig,1))]);
+
+clear RF X Y x0 y0
+
+RF_trimmed = zeros(size(RF_unitVolume),'single');
+sigmaMajor = sigmaMajor(1,:);
+sigmaMinor = sigmaMinor(1,:);
+
+Yfull = reshape(Yorig(:,1),[sqrt(size(Yorig,1)),sqrt(size(Yorig,1))]);
+clear Yorig Xorig
+% fprintf('[%s]: Trim pRFs.', mfilename)
+for ii = 1:size(RF_unitVolume,2)    
+    RF(:,ii) = trimPRF(RF_unitVolume(:,ii), Yfull, fieldRange, sampleRate, ...
+        sigmaMajorLimit, sigmaMajor(ii), sigmaMinor(ii));
+    if mod(ii,100)==0, fprintf('.'); end
+end
+
+% fprintf('Done!\n', mfilename)
+
+end
+
+function RF = trimPRF(RF_orig, Yfull, fieldRange, sampleRate, sigmaMajorLimit, sigmaMajor, sigmaMinor)
     
     % --- Calculate how big the mesh needs to be for a full RF
-    %     xlimit = sigmaMajorLimit * sigmaMajor(ii);
-    xlimit = sigmaMajorLimit * sigmaMajor(:,ii);
+    xlimit = single(sigmaMajorLimit * sigmaMajor);
+    tmpx   = Yfull(:,1); clear Yfull;
     
-    tmpx   = Yfull(:,1);
     while xlimit > max(tmpx)
         % Grow it in 10% increments to avoid making the mesh too big
         fieldRange = 1.1*fieldRange;
@@ -133,18 +150,15 @@ for ii = 1:size(RF,2)
     % - Now that we know that the grid can hold the full RF
     %   Calculate the full RF and calculate the area underneath it
     tmpy = tmpx;
-    [Xfull,Yfull] = meshgrid(tmpx, tmpy);
+    [Xfull,Yfull] = meshgrid(tmpx, tmpy); clear tmpx tmpy;
     
-    %     RFfull = exp( -.5 * ((Yfull ./ sigmaMajor(ii)).^2 + (Xfull ./ sigmaMinor(ii)).^2));
-    RFfull = exp( -.5 * ((Yfull ./ sigmaMajor(1,ii)).^2 + (Xfull ./ sigmaMinor(1,ii)).^2));
+    RFfull = exp( -.5 * ((Yfull ./ sigmaMajor).^2 + (Xfull ./ sigmaMinor).^2));
     
-    RFfull = RFfull ./ (sigmaMajor(1,ii) .* 2 .* pi .* sigmaMinor(1,ii));
+    RFfull = RFfull ./ (sigmaMajor .* 2 .* pi .* sigmaMinor);
+    
     % - Calculate the full RF area
-    sRFfull = sum( RFfull , 'all' );
-    
+    sRFfull = sum(RFfull, 'all' ); clear RFfull;
     
     % - Normalize our RF with the full RF value we just obtained
-    RF(:,ii)  = RF_unitVolume(:,ii)./ sRFfull;
-end
-
+    RF  = RF_orig./ sRFfull;
 end
