@@ -66,16 +66,21 @@ switch regressionType
             if ~any(isnan(X(:,n,:)))
                 % Regress predictions using ordinary least-squares
                 tmp = tch_glm(Y(:,n),squeeze(X(:,n,:)));
+
+                % Get scaled predictions
+                sumChannelPrediction(:,n) = squeeze(X(:,n,:))*tmp.betas';
+
+                % Compute Coefficient of Determination (R2), store R2 and beta
+                tmp.R2  = computeCoD(Y(:,n),sumChannelPrediction(:,n));
+            else
+                tmp = struct('design_mat', NaN(size(X,1),size(X,3)), 'dof', NaN, 'betas', NaN(1,size(X,3)), ...
+                    'residual', NaN(size(X,1),1), 'var_covar', NaN(size(X,3),size(X,3)), 'resid_var', NaN, ...
+                    'stdevs',NaN(1,size(X,3)),'sems',NaN(1,size(X,3)),'R2',zeros(1,1,'single'));
             end
-            
-            % Get scaled predictions
-            sumChannelPrediction(:,n) = squeeze(X(:,n,:))*tmp.betas;
-             
-            % Compute Coefficient of Determination (R2), store R2 and beta
-            tmp.R2  = computeCoD(Y(:,n),sumChannelPrediction(:,n));
             
             % Store in struct
             lm = [lm, tmp];
+            
         end
         
       case 'fracridge'
