@@ -48,6 +48,15 @@ switch optionNumber
         params.analysis.spatial.pRFModelType = 'unitVolume';
         params.analysis.spatial.keepPixels = params.stim.instimwindow;
         params.analysis.spatial.sparsifyFlag = false;
+        
+    case 4 % 
+        params.analysis.spatial.fieldSize = 12;
+        params.analysis.spatial.sampleRate = 12/40;
+        params.analysis.spatialModel = 'onegaussianFit';
+        params.analysis.spatial.pRFModelType = 'unitVolume';
+        params.analysis.spatial.keepPixels = [];
+        params.analysis.spatial.sparsifyFlag = false;
+
 end
 
 
@@ -65,7 +74,7 @@ if ~isfield(params.analysis.spatial,'X') || isempty(params.analysis.spatial.X)
         clear XYGrid X Y
     else
         params.analysis.spatial.X = params.analysis.X;
-        params.analysis.spatial.Y = params.analysis.Y;
+        params.analysis.spatial.Y = -1 * params.analysis.Y;
     end
 
 end
