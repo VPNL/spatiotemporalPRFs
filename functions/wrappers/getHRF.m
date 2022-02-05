@@ -22,7 +22,7 @@ switch params.analysis.hrf.type
         hrf = canonical_hrf(1 / params.analysis.temporal.fs, [5 14 28]);
     case {2,'vista'}
         vistaParams     = [5.4 5.2 10.8 7.35 0.35];
-        tSteps = 0:1/params.analysis.temporal.fs:28;
+        tSteps = 0:1/params.analysis.temporal.fs:20;
         values = rmHrfTwogammas(tSteps, vistaParams);
         hrf = values' / sum(values);
 end
