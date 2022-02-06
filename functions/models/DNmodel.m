@@ -1,4 +1,4 @@
-function result = DNmodel(param, prfResponse)
+function result = DNmodel(param, prfResponse, useGPU)
 % Function to predict neural response to time course using the Divisive
 % Normalization (DN) model
 %
@@ -47,7 +47,7 @@ irf_norm = normSum(exp(-t_irf/param.tau2));
 %% COMPUTE THE NORMALIZATION RESPONSE
 
 % Preallocate space
-if  isgpuarray(prfResponse)
+if  useGPU
     linrsp         = zeros(size(prfResponse),'gpuArray');
 else
     linrsp         = zeros(size(prfResponse));
