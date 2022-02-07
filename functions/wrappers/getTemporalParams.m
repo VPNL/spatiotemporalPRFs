@@ -56,11 +56,11 @@ switch params.analysis.temporalModel
         p.shift        = 0;     % shift of onset response (in ms?)
         
     case '1ch-glm' % load 1ch-glm (linear) model params
-        p.num_channels = 2;
+        p.num_channels = 1;
         p.fs           = 1000; % sample rate (Hz)
         p.shift        = 0;    % shift of onset response (in ms?)
         p.scale        = 1;    % scale factor of final neural response
-        
+
     case '3ch-stLN' % load linear-nonlinear 3-channel model, with a sustained, transient-odd, transient-even channel
         p.num_channels = 3;
         p.fs           = 1000; % sample rate (Hz)
@@ -74,7 +74,8 @@ switch params.analysis.temporalModel
         %             else % go with default
         p.exponent          = 0.5;  % nonlinear compressive exponent for spatiotemporal nonlinearity
         %             end
-        params.analysis.combineNeuralChan = [1 2 2]; % keep sustained channel and combine the on and off-transient channels
+        p.combineNeuralChan =  [1 2 2]; % keep sustained channel and combine the on and off-transient channels
+%         params.analysis.combineNeuralChan = [1 2 2]; 
         
     case 'Adelson-Bergen'
         p.num_channels = 2;
@@ -89,7 +90,9 @@ params.analysis.temporal.param        = p;
 params.analysis.temporal.num_channels = p.num_channels;
 params.analysis.temporal.tr           = tr;
 
-
+if isfield(p,'combineNeuralChan')
+    params.analysis.combineNeuralChan     = p.combineNeuralChan;
+end
 % load default temporal params if Constant file is not there
 % % If there is a constant file load params from the Constants file
 % if exist('Constants','var') == 2

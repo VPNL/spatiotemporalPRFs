@@ -1,4 +1,4 @@
-function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
+function RF = stGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
 % pmGaussian2d - Create a two dimensional Gaussian receptive field,
 % this function is inherited from vistasoft/PRFmodel
 %
@@ -24,7 +24,7 @@ function RF = pmGaussian2d(X,Y,sigmaMajor,sigmaMinor,theta, x0,y0)
 %    sigma = 5;  % Deg
 %    rf = pmGaussian2d(X,Y,sigma);
 %
-fprintf('[%s]: Create pRFs.\n', mfilename)
+% fprintf('[%s]: Create pRFs.\n', mfilename)
 
 if nargin ~= 7
     if ~exist('X', 'var') || isempty(X),
@@ -124,14 +124,14 @@ sigmaMinor = sigmaMinor(1,:);
 
 Yfull = reshape(Yorig(:,1),[sqrt(size(Yorig,1)),sqrt(size(Yorig,1))]);
 clear Yorig Xorig
-fprintf('[%s]: Trim pRFs.', mfilename)
+% fprintf('[%s]: Trim pRFs.', mfilename)
 for ii = 1:size(RF_unitVolume,2)    
     RF(:,ii) = trimPRF(RF_unitVolume(:,ii), Yfull, fieldRange, sampleRate, ...
         sigmaMajorLimit, sigmaMajor(ii), sigmaMinor(ii));
     if mod(ii,100)==0, fprintf('.'); end
 end
 
-fprintf('Done!\n', mfilename)
+% fprintf('Done!\n', mfilename)
 
 end
 

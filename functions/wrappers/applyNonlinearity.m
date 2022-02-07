@@ -57,7 +57,8 @@ if strcmp(params.analysis.temporalModel,'1ch-dcts')
     params.analysis.nonlinearity = 'dcts';
  
     % Apply divisive normalization to pRF stimulus time series
-    nonLinearResponse = DNmodel(params.analysis.temporal.param, prfResponse);
+    nonLinearResponse = DNmodel(params.analysis.temporal.param, ...
+                                prfResponse, params.useGPU);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -44,7 +44,7 @@ irfS = f1;
 irfT = f1 - f2;
 
 % normalize max of IRFs
-irfT = irfT * (max(irfS) / max(irfT));
+% irfT = irfT * (max(irfS) / max(irfT));
 
 % output sustained or transient IRF
 switch channel

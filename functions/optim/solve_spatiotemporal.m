@@ -3,7 +3,8 @@ function e = solve_spatiotemporal(x,params, stim, data)
 % Generates anonymous objective function that can be passed to fmincon
 
 % nruns = size(stim,3);
-
+% disp(x);
+% x = [ -0.0027    1.4215    0.0122];
 params.analysis.spatial.x0 = x(1);
 params.analysis.spatial.y0 = x(2);
 params.analysis.spatial.sigmaMajor = x(3);
@@ -26,6 +27,8 @@ switch params.analysis.temporalModel
         % 4 temporal params to solve:
         %  ["tau1", weight, "tau2", "n", "delay/sigma"]
         %  [0.05      0       0.1    2     0.1  ]
+%         error('do work')
+% disp(x(4));
         params.analysis.temporal.param.tau1   = x(4);
         params.analysis.temporal.param.weight = x(5);
         params.analysis.temporal.param.tau2   = x(6);
@@ -78,11 +81,11 @@ e = gather(sum(calc_br));
 
 
 %%
-
-figure(1)
-clf;
-plot(sum(predictions(:,:),2),'r'); hold on; plot(data(:),'k'); hold off;
-title(calccod(gather((sum(predictions,2))),gather(data)))
+% 
+% figure(1)
+% clf;
+% plot(sum(predictions(:,:),2),'r'); hold on; plot(data(:),'k'); hold off;
+% title(calccod(gather((sum(predictions,2))),gather(data)))
 
 % 
 % [23.7,0.58,0.259,4.14,14.0,0.9996]
