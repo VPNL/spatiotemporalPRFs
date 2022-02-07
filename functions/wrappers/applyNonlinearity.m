@@ -36,8 +36,12 @@ if strcmp(params.analysis.spatialModel,'cssFit')
     params.analysis.nonlinearity = 'css';
 
     % Exponentiate predicted pRF stimulus time series
-    if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh') 
+    if isfield(params.analysis.spatial,'lh') && isfield(params.analysis.spatial,'rh') 
         exponent = cat(2,params.analysis.spatial.lh.exponent,params.analysis.spatial.rh.exponent);
+    elseif isfield(params.analysis.spatial,'lh') && ~isfield(params.analysis.spatial,'rh') 
+         exponent = params.analysis.spatial.lh.exponent;
+    elseif ~isfield(params.analysis.spatial,'lh') && isfield(params.analysis.spatial,'rh') 
+         exponent = params.analysis.spatial.rh.exponent;
     else
         exponent = params.analysis.spatial.exponent;
     end
@@ -61,7 +65,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(params.analysis.temporalModel,'3ch-stLN')
     verbose = false;
-    if params.useGPU == 1
+    if params.useGPU
         nonLinearResponse = zeros(size(prfResponse),'gpuArray');
     else 
         nonLinearResponse = zeros(size(prfResponse));
