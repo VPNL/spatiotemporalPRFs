@@ -40,22 +40,40 @@ if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.s
     params.analysis.spatial.pRFModelType = 'unitVolume';
 end
 
-% Assume circular pRFs if no sigma minor is defined
-if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
+% Check for nuisance parameters
+if isfield(params.analysis.spatial,'lh')
+    numVoxelsLeft = length(params.analysis.spatial.lh.sigmaMajor);
+    % Assume circular pRFs if no sigma minor is defined
     if ~isfield(params.analysis.spatial.lh,'sigmaMinor')
         params.analysis.spatial.lh.sigmaMinor = params.analysis.spatial.lh.sigmaMajor;
     end
-    if ~isfield(params.analysis.spatial.rh,'sigmaMinor')
-        params.analysis.spatial.rh.sigmaMinor = params.analysis.spatial.rh.sigmaMajor;
-    end
-    % Assume circular pRFs if no sigma minor is defined
     if ~isfield(params.analysis.spatial.lh,'theta')
         params.analysis.spatial.lh.theta = zeros(size(params.analysis.spatial.lh.sigmaMajor));
+    end
+else
+    numVoxelsLeft = 0;
+end
+
+% Same for right hemi
+if isfield(params.analysis.spatial,'rh')
+    numVoxelsRight = length(params.analysis.spatial.rh.sigmaMajor);
+    if ~isfield(params.analysis.spatial.rh,'sigmaMinor')
+        params.analysis.spatial.rh.sigmaMinor = params.analysis.spatial.rh.sigmaMajor;
     end
     if ~isfield(params.analysis.spatial.rh,'theta')
         params.analysis.spatial.rh.theta = zeros(size(params.analysis.spatial.rh.sigmaMajor));
     end
 else
+    numVoxelsRight = 0;
+end
+
+if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
+    numVoxels = numVoxelsLeft+numVoxelsRight;
+end
+
+% Or when there is no hemi subfield
+if ~isfield(params.analysis.spatial,'lh') && ~isfield(params.analysis.spatial,'rh')
+    numVoxels = length(params.analysis.spatial.sigmaMajor);
     if ~isfield(params.analysis.spatial,'sigmaMinor')
         params.analysis.spatial.sigmaMinor = params.analysis.spatial.sigmaMajor;
     end
@@ -64,18 +82,12 @@ else
     end
 end
 
-
 % Assume we want to trim edges of pRF
 if ~isfield(params.analysis.spatial,'trimRFFlag')
     params.analysis.spatial.trimRFFlag = true;
 end
 
 %% Get num of voxels and loop over them to create pRFs
-if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
-    numVoxels = length(params.analysis.spatial.lh.sigmaMajor)+length(params.analysis.spatial.rh.sigmaMajor);
-else
-    numVoxels = length(params.analysis.spatial.sigmaMajor);
-end
 
 % Get hemispheres
 hemis = [];
