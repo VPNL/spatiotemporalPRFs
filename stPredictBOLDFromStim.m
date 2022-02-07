@@ -58,7 +58,7 @@ if ~isfield(params,'useGPU')
     params.useGPU = 0;
 end
 
-if params.verbose == 1
+if params.verbose
     fprintf('[%s]: Computing BOLD predictions for %s %s model \n', ...
         mfilename,params.analysis.spatialModel, params.analysis.temporalModel); drawnow;
 end
@@ -72,7 +72,7 @@ end
  
 nVoxels = size(linearPRFModel.spatial.prfs,2);
 
-if params.verbose == 1
+if params.verbose
     fprintf('[%s]: Making model predictions for %d voxels/vertices \n',mfilename,nVoxels);
 end
 %% 2. Compute spatiotemporal response in milliseconds (pRF X Stim)
@@ -103,7 +103,7 @@ if isfield(params.analysis,'combineNeuralChan') && ...
         (length(params.analysis.combineNeuralChan) ~= length(unique(params.analysis.combineNeuralChan)))
     uniqueRuns = unique(params.analysis.combineNeuralChan);
     % Get new array, use same size to ensure dimensions are correct.
-    if params.useGPU == 1
+    if params.useGPU
         predNeuralComb = zeros(size(predNeural),'gpuArray');
     else
         predNeuralComb = zeros(size(predNeural));
@@ -134,10 +134,10 @@ end
 
 %% 8. Compute spatiotemporal BOLD response in TRs
 % Define hrf
-if ~isfield(params.analysis.hrf, 'values') || isempty(params.analysis.hrf.values)
+if ~isfield(params.analysis.hrf, 'func') || isempty(params.analysis.hrf.func)
     [hrf,params] = getHRF(params);
 else
-    hrf = params.analysis.hrf.values;
+    hrf = params.analysis.hrf.func;
 end
 % Convolve neural response with HRF per channel, and downsample to TR
 predBOLD = getPredictedBOLDResponse(predNeural, hrf, params);
