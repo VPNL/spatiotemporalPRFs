@@ -29,8 +29,6 @@ else
     end
 end
 
-
-
 %% Then temporal
 % Get predicted pRF time series: convolve spatial pRF response
 % and temporal filter

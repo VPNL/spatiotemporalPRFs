@@ -28,7 +28,7 @@ switch params.analysis.hrf.type
 end
 
 
-params.analysis.hrf.values = hrf;
+params.analysis.hrf.func = hrf;
 
 
 
