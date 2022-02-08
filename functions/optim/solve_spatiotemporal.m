@@ -63,7 +63,7 @@ if params.analysis.optim.ridge == 0
     comp_ws = predictions \ data;
 elseif  params.analysis.optim.ridge == 1
     fracAlpha = params.analysis.optim.ridgeAlpha;
-    if ~isfinite(predictions(:))
+    if sum(isnan(predictions(:))) ~= 0 %%~isfinite(predictions(:))
         comp_ws = predictions \ data;
     else
         [comp_ws,~,~] = fracridge(predictions,fracAlpha,data,[],1);
