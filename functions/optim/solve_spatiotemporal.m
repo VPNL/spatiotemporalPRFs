@@ -1,14 +1,15 @@
 function e = solve_spatiotemporal(x,params, stim, data)
 
 % Generates anonymous objective function that can be passed to fmincon
-
 % nruns = size(stim,3);
 % disp(x);
 % x = [ -0.0027    1.4215    0.0122];
+% x =    [ 1.0442   -1.4051    0.0155    0.2541   17.1991]
 params.analysis.spatial.x0 = x(1);
 params.analysis.spatial.y0 = x(2);
 params.analysis.spatial.sigmaMajor = x(3);
 params.analysis.spatial.sigmaMinor = x(3);
+% 
 
 switch params.analysis.temporalModel
     case '1ch-glm'
@@ -63,7 +64,7 @@ if params.analysis.optim.ridge == 0
     comp_ws = predictions \ data;
 elseif  params.analysis.optim.ridge == 1
     fracAlpha = params.analysis.optim.ridgeAlpha;
-    if sum(isnan(predictions(:))) ~= 0 %%~isfinite(predictions(:))
+    if sum(isnan(predictions(:))) ~= 0 || isempty(predictions(:)) || sum(predictions,'all') ==0
         comp_ws = predictions \ data;
     else
         [comp_ws,~,~] = fracridge(predictions,fracAlpha,data,[],1);
