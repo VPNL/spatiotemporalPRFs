@@ -16,11 +16,11 @@ elseif length(varargin)==3
 
 end
 
-if isempty(thresh) || ~exist('thresh','var')
+if  ~exist('thresh','var') || isempty(thresh)
     thresh = 0;
 end 
 
-if isempty(useGPU) || ~exist('useGPU','var')
+if ~exist('useGPU','var') || isempty(useGPU) 
     useGPU = 0;
 end 
 
