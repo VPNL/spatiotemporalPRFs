@@ -32,7 +32,7 @@ t_lth   = size(prfResponse,1);
 %% COMPUTE THE IMPULSE RESPONSE FUNCTION
 % HERE I ASSUME THAT THE NEGATIVE PART OF THE IMPULSE RESPONSE HAS A TIME
 % CONSTANT 1.5 TIMES THAT OF THE POSITIVE PART OF THE IMPULSE RESPONSE
-if param.tau1 > 0.5, warning('tau1>1, the estimation for other parameters may not be accurate'); end
+% if param.tau1 > 0.5, warning('tau1>1, the estimation for other parameters may not be accurate'); end
 
 % t_irf   = dt : dt : 5;
 t_irf   = 0 : dt : 5;
