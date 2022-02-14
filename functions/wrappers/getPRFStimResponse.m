@@ -25,7 +25,7 @@ if  params.useGPU
 else
     s_prfResponse =zeros(size(stim,2),size(linearPRFFilters.spatial.prfs,2),size(stim,3));
     for r = 1:size(stim,3)
-        s_prfResponse(:,:,r) = full(stim(:,:,r)'*linearPRFFilters.spatial.prfs); % time x voxels
+        s_prfResponse(:,:,r) = full(sparse(stim(:,:,r))'* sparse(double(linearPRFFilters.spatial.prfs))); % time x voxels
     end
 end
 
