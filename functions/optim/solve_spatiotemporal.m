@@ -20,9 +20,9 @@ switch params.analysis.temporalModel
 %         params.analysis.temporal.param.tau_s    = x(5);
 %         params.analysis.temporal.param.tau_t    = x(6);
 
-        params.analysis.temporal.param.exponent = x(4);
-        params.analysis.temporal.param.tau_s    = x(5);
-        params.analysis.temporal.param.tau_t    = x(5);
+        params.analysis.temporal.param.exponent = x(4); % 10
+        params.analysis.temporal.param.tau_s    = x(5); % 4 
+        params.analysis.temporal.param.tau_t    = x(5); % 20
 
     case '1ch-dcts'
         % 4 temporal params to solve:
@@ -40,6 +40,9 @@ end
 
 predictions = stPredictBOLDFromStim(params, stim);
 predictions = predictions.predBOLD;
+% if params.analysis.normMax
+%     predictions = normMax(predictions);
+% end
 predictions = squeeze(concatRuns(predictions));
 % predictions = reshape(predictions,[size(predictions,1)*nruns,size(predictions,3)]);
 
@@ -62,6 +65,9 @@ end
 if params.analysis.optim.ridge == 0
     % % channel weights: channel predictors \ measured signal
     comp_ws = predictions \ data;
+    if  sum(isnan(comp_ws(:))) ~= 0
+        comp_ws =0;
+    end
 elseif  params.analysis.optim.ridge == 1
     fracAlpha = params.analysis.optim.ridgeAlpha;
     if sum(isnan(predictions(:))) ~= 0 || isempty(predictions(:)) || sum(predictions,'all') ==0
