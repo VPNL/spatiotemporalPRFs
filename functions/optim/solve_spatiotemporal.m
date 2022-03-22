@@ -65,13 +65,14 @@ end
 if params.analysis.optim.ridge == 0
     % % channel weights: channel predictors \ measured signal
     comp_ws = predictions \ data;
-    if  sum(isnan(comp_ws(:))) ~= 0
+    if  sum(isnan(comp_ws(:))) ~= 0 || sum(predictions(:)) ==0
         comp_ws =0;
     end
 elseif  params.analysis.optim.ridge == 1
     fracAlpha = params.analysis.optim.ridgeAlpha;
     if sum(isnan(predictions(:))) ~= 0 || isempty(predictions(:)) || sum(predictions,'all') ==0
-        comp_ws = predictions \ data;
+%         comp_ws = predictions \ data;
+        comp_ws = 0;
     else
         [comp_ws,~,~] = fracridge(predictions,fracAlpha,data,[],1);
     end
