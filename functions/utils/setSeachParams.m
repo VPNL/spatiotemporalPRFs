@@ -18,6 +18,7 @@ switch params.analysis.temporalModel
         params.analysis.temporal.param.exponent = x(4);
         params.analysis.temporal.param.tau_s    = x(5);
         params.analysis.temporal.param.tau_t    = x(5);
+%         params.analysis.temporal.param.shift    = x(6);
 
 % 
     case '1ch-dcts'

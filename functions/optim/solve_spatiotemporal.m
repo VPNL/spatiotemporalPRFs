@@ -1,4 +1,4 @@
-function e = solve_spatiotemporal(x,params, stim, data)
+function e = solve_spatiotemporal(x,params, stim, data,t)
 
 % Generates anonymous objective function that can be passed to fmincon
 % nruns = size(stim,3);
@@ -10,6 +10,8 @@ params.analysis.spatial.y0 = x(2);
 params.analysis.spatial.sigmaMajor = x(3);
 params.analysis.spatial.sigmaMinor = x(3);
 % 
+nChan = getChanNumber(params);
+
 
 switch params.analysis.temporalModel
     case '1ch-glm'
@@ -22,7 +24,8 @@ switch params.analysis.temporalModel
 
         params.analysis.temporal.param.exponent = x(4); % 10
         params.analysis.temporal.param.tau_s    = x(5); % 4 
-        params.analysis.temporal.param.tau_t    = x(5); % 20
+%         params.analysis.temporal.param.tau_t    = x(6); % 4
+%         params.analysis.temporal.param.shift    = x(6); % 4
 
     case '1ch-dcts'
         % 4 temporal params to solve:
@@ -37,6 +40,12 @@ switch params.analysis.temporalModel
         params.analysis.temporal.param.sigma  = x(8);
         
 end    
+
+% if params.analysis.temporal.param.shift >0
+%     sft   = round(params.analysis.temporal.param.shift / (1/params.analysis.temporal.fs));
+%     tmp   = padarray(stim, [0, sft], 0, 'pre');
+%     stim = tmp(:,1:size(stim, 2),:);
+% end
 
 predictions = stPredictBOLDFromStim(params, stim);
 predictions = predictions.predBOLD;
@@ -64,6 +73,7 @@ end
 
 if params.analysis.optim.ridge == 0
     % % channel weights: channel predictors \ measured signal
+    predictions = [predictions t.trends];
     comp_ws = predictions \ data;
     if  sum(isnan(comp_ws(:))) ~= 0 || sum(predictions(:)) ==0
         comp_ws =0;
@@ -74,12 +84,19 @@ elseif  params.analysis.optim.ridge == 1
 %         comp_ws = predictions \ data;
         comp_ws = 0;
     else
+        predictions = [predictions t.trends];
         [comp_ws,~,~] = fracridge(predictions,fracAlpha,data,[],1);
     end
         
 end
-
-predictions = bsxfun(@times, predictions,comp_ws');
+% X    = [squeeze(prediction(:,n,:)) trends];
+% comp_ws = [comp_ws trends]
+% if sum(comp_ws(1:nChan) < 0)
+% %     comp_ws(1:nChan) = max(comp_ws(1:nChan),0);
+%     comp_ws(1:nChan) = zeros(nChan,1);
+% end
+% predictions = bsxfun(@times, predictions,comp_ws');
+predictions =predictions * comp_ws;
 
 % model residuals: (predicted signal - measured signal)^2
 calc_br = bsxfun(@power,(sum(predictions,2) - data), 2);
