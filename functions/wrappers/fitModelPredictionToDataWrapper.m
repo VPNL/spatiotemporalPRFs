@@ -52,6 +52,10 @@ numChannels   = size(predictions,3);
 
 % Preallocate space
 sumChannelPrediction = NaN(numTimePoints,numVoxels);
+
+if useGPU
+   sumChannelPrediction = gpuArray(sumChannelPrediction);
+end
 lm = [];
 
 % Rename full predictions and dataset
