@@ -34,6 +34,7 @@ p.addRequired('predictions',@isnumeric);
 p.addParameter('alpha', logspace(-2,2,30), @isnumeric);
 p.addParameter('regressionType','OLS', @(x) any(validatestring(x,{'OLS','fracridge'})));
 p.addParameter('kFolds',10, @isnumeric);
+p.addParameter('useGPU',false,@islogical);
 p.parse(data,predictions,varargin{:});
 
 % Rename variables
@@ -42,6 +43,7 @@ predictions     = p.Results.predictions;
 alpha           = p.Results.alpha;
 regressionType  = p.Results.regressionType;
 kFolds          = p.Results.kFolds;
+useGPU          = p.Results.useGPU;
 
 % Derive dimensions of data and predictions
 numTimePoints = size(data,1);
@@ -67,8 +69,14 @@ switch regressionType
                 % Regress predictions using ordinary least-squares
                 tmp = tch_glm(Y(:,n),squeeze(X(:,n,:)));
 
+                if useGPU
+                    betas = gpuArray(tmp.betas');
+                else
+                    betas = tmp.betas'; 
+                end
+                
                 % Get scaled predictions
-                sumChannelPrediction(:,n) = squeeze(X(:,n,:))*tmp.betas';
+                sumChannelPrediction(:,n) = squeeze(X(:,n,:))*betas;
 
                 % Compute Coefficient of Determination (R2), store R2 and beta
                 tmp.R2  = computeCoD(Y(:,n),sumChannelPrediction(:,n));
@@ -110,10 +118,16 @@ switch regressionType
                      % Regress predictions using fractional ridge regression
                      lm = tch_glm_fracridge(Ytrain(:,n),squeeze(Xtrain(:,n,:)), alpha);
                      lm.alphas = alpha;
-
+                     
+                     if useGPU
+                         betas = gpuArray(lm.betas);
+                     else
+                         betas = lm.betas;
+                     end
+                     
                      for aa = 1:length(lm.alphas)
                          % Get predicted response from model
-                         splithalfModelPrediction(nc,n,aa,:) = squeeze(Xtest(:,n,:))*lm.betas(:,aa);
+                         splithalfModelPrediction(nc,n,aa,:) = squeeze(Xtest(:,n,:))*betas(:,aa);
                          % Compute R2 (coefficient of determination)
                          R2_alpha(nc,n,aa)  = computeCoD(Ytest(:,n),squeeze(splithalfModelPrediction(nc,n,aa,:)));
                      end
@@ -131,8 +145,14 @@ switch regressionType
     for n = 1:numVoxels
         tmp = tch_glm_fracridge(Y(:,n),squeeze(X(:,n,:)), bestAlpha);
 
+        if useGPU
+            betas = gpuArray(tmp.betas);
+        else
+            betas = tmp.betas;
+        end
+        
         % Get predicted response from model
-        sumChannelPrediction(:,n) = squeeze(X(:,n,:))*tmp.betas;
+        sumChannelPrediction(:,n) = squeeze(X(:,n,:))*betas;
 
         % Compute Coefficient of Determination (R2), store R2 and beta
         tmp.R2 = computeCoD(Y(:,n),sumChannelPrediction(:,n));
