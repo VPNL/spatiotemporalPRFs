@@ -25,12 +25,23 @@ switch params.analysis.hrf.type
         tSteps = 0:1/params.analysis.temporal.fs:20;
         values = rmHrfTwogammas(tSteps, vistaParams);
         hrf = values' / sum(values);
+    case {3,'knk'}
+%         params.analysis.hrf.index =1;
+        file0 = strrep(which('getcanonicalhrflibrary'),'getcanonicalhrflibrary.m','getcanonicalhrflibrary.tsv');
+        hrfs = load(file0)';  % 20 HRFs x 501 time points
+        trold = 0.1;
+        tr = 1/params.analysis.temporal.fs;
+
+        % resample to desired sampleing rate
+        hrfs = interp1((0:size(hrfs,2)-1)*trold,hrfs',0:tr:(size(hrfs,2)-1)*trold,'pchip')';  % 20 HRFs x time
+        hrfs = hrfs ./ sum(hrfs')';
+%         hrfs = hrfs ./ repmat(max(hrfs,[],2),[1 size(hrfs,2)]);
+
+        params.analysis.hrf.lib = hrfs;
+        hrf  = hrfs(1,1:2001);
+        
 end
 
-
 params.analysis.hrf.func = hrf;
-
-
-
 
 end
