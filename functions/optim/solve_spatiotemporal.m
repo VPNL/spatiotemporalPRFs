@@ -2,9 +2,11 @@ function e = solve_spatiotemporal(x,params, stim, data,t)
 
 % Generates anonymous objective function that can be passed to fmincon
 % nruns = size(stim,3);
-% disp(x);
 % x = [ -0.0027    1.4215    0.0122];
 % x =    [ 1.0442   -1.4051    0.0155    0.2541   17.1991]
+% x =  [-13.7539   -2.6928    1.6509    0.2930    1.0000         0];
+% disp(x);
+
 params.analysis.spatial.x0 = x(1);
 params.analysis.spatial.y0 = x(2);
 params.analysis.spatial.sigmaMajor = x(3);
@@ -40,7 +42,7 @@ switch params.analysis.temporalModel
         params.analysis.temporal.param.sigma  = x(8);
         
 end    
-
+% 
 % if params.analysis.temporal.param.shift >0
 %     sft   = round(params.analysis.temporal.param.shift / (1/params.analysis.temporal.fs));
 %     tmp   = padarray(stim, [0, sft], 0, 'pre');
@@ -52,15 +54,33 @@ predictions = predictions.predBOLD;
 % if params.analysis.normMax
 %     predictions = normMax(predictions);
 % end
-predictions = squeeze(concatRuns(predictions));
+if size(stim,3) == 1
+    predictions = squeeze((predictions));
+else
+    predictions = squeeze(concatRuns(predictions));
+end
+% if params.analysis.temporal.param.shift >0
+%     sft   = round(params.analysis.temporal.param.shift); %round(params.analysis.temporal.param.shift / (1/params.analysis.temporal.fs));
+%     tmp   = padarray(predictions', [0, sft], 0, 'pre');
+%     predictions = tmp(:,1:size(predictions, 1))';
+% end
 % predictions = reshape(predictions,[size(predictions,1)*nruns,size(predictions,3)]);
-
+% predictions = predictions(:,1);
 data = data(:);
+
+
+% if params.analysis.temporal.param.shift >0
+%     sft   = round(params.analysis.temporal.param.shift);
+%     tmp   = padarray(data', [0, sft], 0, 'pre')';
+%     data = tmp(1:size(data, 1),:);
+% end
+
+% data = zscore(data);
+% data = data+4;
+% data(data<-0.1) = -0.1;
+% data = data+1;
+
 % 
-% pred_bs = cellfun(@(P, W) P .* repmat(W, size(P, 1), 1), ...
-%     conv_nb, repmat({comp_ws'}, nruns, 1), 'uni', false);
-% % model residuals: (predicted signal - measured signal)^2
-% calc_br = cellfun(@(S, M) (sum(S, 2) - M) .^ 2, pred_bs, data, 'uni', false);
 % 
 if params.analysis.optim.decimate> 1
     if isfinite(predictions(:))
@@ -68,6 +88,7 @@ if params.analysis.optim.decimate> 1
         predictions = rmDecimate(gather(predictions),params.analysis.optim.decimate);
         predictions = gpuArray(predictions);
         data = gpuArray(data);
+        t.trends = rmDecimate( t.trends,params.analysis.optim.decimate);
     end
 end
 
@@ -89,12 +110,13 @@ elseif  params.analysis.optim.ridge == 1
     end
         
 end
-% X    = [squeeze(prediction(:,n,:)) trends];
-% comp_ws = [comp_ws trends]
+
+% if comp_ws(1) < 0
 % if sum(comp_ws(1:nChan) < 0)
-% %     comp_ws(1:nChan) = max(comp_ws(1:nChan),0);
 %     comp_ws(1:nChan) = zeros(nChan,1);
 % end
+% end
+
 % predictions = bsxfun(@times, predictions,comp_ws');
 predictions =predictions * comp_ws;
 
@@ -104,15 +126,15 @@ calc_br = bsxfun(@power,(sum(predictions,2) - data), 2);
 % model error: summed squared residuals for all run time series
 e = gather(sum(calc_br));
 
-
+% disp(comp_ws);
 %%
-% 
+% % 
 % figure(1)
-% clf;
+% % % clf;
 % plot(sum(predictions(:,:),2),'r'); hold on; plot(data(:),'k'); hold off;
 % title(calccod(gather((sum(predictions,2))),gather(data)))
+% xlim([0 400]);
 
-% 
 % [23.7,0.58,0.259,4.14,14.0,0.9996]
 
 
