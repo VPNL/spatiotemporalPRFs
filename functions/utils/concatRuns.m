@@ -11,6 +11,8 @@ if ndims(input) == 4
 elseif ndims(input) == 3
     ordered_input = permute(input, [1 3 2]);
     output = reshape(ordered_input,[], size(input,2));
+elseif  ndims(input) == 2
+    output = input;
 end
 
 
