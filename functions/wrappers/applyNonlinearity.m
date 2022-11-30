@@ -72,7 +72,7 @@ if strcmp(params.analysis.temporalModel,'3ch-stLN')
         nonLinearResponse = zeros(size(prfResponse));
     end
     for n = 1:size(prfResponse,3)
-        nonLinearResponse(:,:,n,:) = tch_staticExpComp(prfResponse(:,:,n,:), params.analysis.temporal.param.exponent,verbose);
+        nonLinearResponse(:,:,n,:) = tch_staticExpComp(squeeze(prfResponse(:,:,n,:)), params.analysis.temporal.param.exponent,verbose);
     end
     params.analysis.nonlinearity = 'staticExp';
 end
