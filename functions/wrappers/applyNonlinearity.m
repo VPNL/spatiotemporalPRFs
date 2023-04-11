@@ -22,7 +22,7 @@ function [nonLinearResponse, params] = applyNonlinearity(prfResponse,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %      SKIP NON LINEARITY     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if strcmp(params.analysis.temporalModel,'1ch-glm') || strcmp(params.analysis.temporalModel,'Adelson-Bergen')
+if ismember(params.analysis.temporalModel,{'1ch-glm','spatial'})
     nonLinearResponse = prfResponse;
     params.analysis.nonlinearity = 'none';
 end
@@ -53,7 +53,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % DCTS - divisive compressive temporal summation (Zhou et al. 2018 PLoS CB)
-if strcmp(params.analysis.temporalModel,'1ch-dcts')
+if ismember(params.analysis.temporalModel,{'1ch-dcts','DN-ST'}) 
     params.analysis.nonlinearity = 'dcts';
  
     % Apply divisive normalization to pRF stimulus time series
@@ -64,7 +64,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SPATIOTEMPORAL NON LINEARITY  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if strcmp(params.analysis.temporalModel,'3ch-stLN')
+if ismember(params.analysis.temporalModel,{'3ch-stLN','CST'})   
     verbose = false;
     if params.useGPU
         nonLinearResponse = zeros(size(prfResponse),'gpuArray');
