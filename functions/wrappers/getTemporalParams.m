@@ -30,7 +30,7 @@ else
 end
 
 switch params.analysis.temporalModel
-    case '1ch-dcts' % load 1ch-dcts (DN) model params
+    case {'1ch-dcts','DN-ST'}% load 1ch-dcts (DN) model params
         p.num_channels = 1;
         p.fs           = 1000; % sample rate (Hz)
         p.tau1         = 0.05; % time constant for initial gamma IRF
@@ -55,13 +55,13 @@ switch params.analysis.temporalModel
         p.weight       = 0.5;   % relative weight sustained vs transient (0.5 = equal weight for either channel)
         p.shift        = 0;     % shift of onset response (in ms?)
         
-    case '1ch-glm' % load 1ch-glm (linear) model params
+    case {'1ch-glm','spatial'} % load 1ch-glm (linear) model params
         p.num_channels = 1;
         p.fs           = 1000; % sample rate (Hz)
         p.shift        = 0;    % shift of onset response (in ms?)
         p.scale        = 1;    % scale factor of final neural response
 
-    case '3ch-stLN' % load linear-nonlinear 3-channel model, with a sustained, transient-odd, transient-even channel
+    case {'3ch-stLN', 'CST' }% load linear-nonlinear 3-channel model, with a sustained, transient-odd, transient-even channel
         p.num_channels = 3;
         p.fs           = 1000; % sample rate (Hz)
         p.tau_s        = 4.93; % time constant for excitatory mechanism (ms) to create sustained gamma IRF
