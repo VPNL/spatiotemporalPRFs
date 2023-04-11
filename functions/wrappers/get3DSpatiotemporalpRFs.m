@@ -20,7 +20,7 @@ end
 
 %% Get spatial or temporal pRF filter
 switch params.analysis.temporalModel
-    case '3ch-stLN'
+    case {'3ch-stLN','CST'}
         x = params.analysis.temporal.param;
         if ~isfield(x,'tau_t')
            x.tau_t = x.tau_s;              
@@ -124,52 +124,15 @@ switch params.analysis.temporalModel
         clear nrfT2 irfT_pos irfT_neg
   
         f.spatial.prfs = prfs;
-    case 'Adelson-Bergen'
-        f.spatial.prfs = prfs;
-%         for n = 1:10
-%             f.temporal(:,n) = 2*temp_imp_resp(n,22,[0:tsz]'/tsz);
-%             f.names{n} = n;
-%         end
-        prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
+ 
         
-        sfilt = upBlur([0 0 0.107517 0.074893 -0.469550 0 ...
-            0.469550 -0.074893 -0.107517 0 0]);
-        sdfilt = upBlur([0 0 0.201624 -0.424658 -0.252747 0.940351 ...
-            -0.252747 -0.424658 0.201624 0 0]/1.8);
-        
-        tsz = 20*1000;
-        tfilt = 2*temp_imp_resp(5,22,[0:tsz]'/tsz);
-        tdfilt = temp_imp_resp(2.5,22,[0:tsz]'/tsz)/2.5;
-        
-        f1= tfilt*prfs';
-        f2= tdfilt*prfs';
-        subplot(211); imagesc(f1);
-        subplot(212); imagesc(f2);
-
-%         even_slow = tfilt * sdfilt;
-%         even_fast = tdfilt * sdfilt ;
-%         odd_slow = tfilt * sfilt ;
-%         odd_fast = tdfilt * sfilt ;
-
-        f.temporal(:,1) = tfilt;
-        f.temporal(:,2) = tdfilt;
-        
-%         leftward_1=odd_fast+even_slow;
-%         leftward_2=-odd_slow+even_fast;
-%         rightward_1=-odd_fast+even_slow;
-%         rightward_2=odd_slow+even_fast;
-
-        f.spatiotemporal()
-
-%         f.names = {'fast','slow'};
-        
-    case '1ch-dcts'
+    case {'1ch-dcts','DN-ST'}
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
         f.temporal(1) = 1;
         f.names = {'linear'};
         
-    case '1ch-glm'
+    case {'1ch-glm','spatial'}
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
         f.temporal(1) = 1;
