@@ -125,13 +125,14 @@ switch params.analysis.temporalModel
   
         f.spatial.prfs = prfs;
 
-    case {'1ch-dcts', 'DN-ST'}
+        
+    case {'1ch-dcts','DN-ST'}
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
         f.temporal(1) = 1;
         f.names = {'linear'};
         
-    case {'1ch-glm', 'spatial'}
+    case {'1ch-glm','spatial'}
         % Just keep spatial filter for now
         f.spatial.prfs = prfs;
         f.temporal(1) = 1;

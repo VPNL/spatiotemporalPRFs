@@ -53,7 +53,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % DCTS - divisive compressive temporal summation (Zhou et al. 2018 PLoS CB)
-if  ismember(params.analysis.temporalModel,{'1ch-dcts','DN-ST'}) 
+if ismember(params.analysis.temporalModel,{'1ch-dcts','DN-ST'}) 
     params.analysis.nonlinearity = 'dcts';
  
     % Apply divisive normalization to pRF stimulus time series
@@ -64,7 +64,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  SPATIOTEMPORAL NON LINEARITY  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if  ismember(params.analysis.temporalModel,{'3ch-stLN','CST'}) 
+if ismember(params.analysis.temporalModel,{'3ch-stLN','CST'})   
     verbose = false;
     if params.useGPU
         nonLinearResponse = zeros(size(prfResponse),'gpuArray');
