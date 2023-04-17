@@ -8,7 +8,7 @@ params.analysis.spatial.sigmaMinor = x(3);
 
 switch params.analysis.temporalModel
     case '1ch-glm'
-    case '3ch-stLN'
+    case {'3ch-stLN','CST'}
         % 3 temporal params to solve:
         % 1) sustained delay 2) transient delay  3) exponent
 %         params.analysis.temporal.param.exponent = x(4);
@@ -21,7 +21,7 @@ switch params.analysis.temporalModel
 %         params.analysis.temporal.param.shift    = x(6);
 
 % 
-    case '1ch-dcts'
+    case {'1ch-dcts','DN-ST'}
         % 4 temporal params to solve:
         %  ["tau1", weight, "tau2", "n", "delay/sigma"]
         %  [0.05      0       0.1    2     0.1  ]
