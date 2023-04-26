@@ -1,15 +1,21 @@
 function [hrf,params] = getHRF(params)
-
-% Description: Grabs HRF according to the optionNumber
-% 1. SPM HRF
-% 2. vistasoft HRF
+% Function to get HRF according to the params.analysis.hrf.type
+%   1. 'spm'      : SPM HRF
+%   2. 'vista'    : vistasoft HRF
+%   3. 'library1' : Kendrick Kay's canonical HRF library
+%   4. 'library2' : Vistasoft's canonical HRF library
+%   5. 'opt'      : Use optimized HRF parameters for each voxel
+% If 'hrf' fieldname does not exist in params.analysis, we default to spm
+% double gamma HRF.
 % 
-% INPUT:
-% params  : (struct) Params struct should have the following fields:
-%           * params.analysis.temporal.fs - temporal sampling rate
- %          * params.analysis.hrf = specify HRF type
-% OUTPUT:
-% hrf    : (double) 
+% INPUTS:
+% params    : (struct) Params struct should have following fields:
+%              * params.analysis.temporal.fs: (double) temporal sampling rate (ms)
+%              * params.analysis.hrf.type   : (str or double) type nr         
+%
+% OUTPUTs:
+% hrf       : (double) Generated HRF(s) [time (ms) x voxels]   
+% params    : (struct) Updated params struct 
 %               
 % Written by ISK 2021 @ VPNL Stanford U
 

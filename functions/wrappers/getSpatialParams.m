@@ -26,14 +26,14 @@ function params = getSpatialParams(params,optionNumber)
 %%
 % load default temporal params
 switch optionNumber
-    case 1
+    case 1 % High sample rate (0.24 degrees)
         params.analysis.spatial.fieldSize = 12;
         params.analysis.spatial.sampleRate = 12/50;
         params.analysis.spatial.pRFModelType = 'unitVolume';
         params.analysis.spatial.keepPixels = [];
         params.analysis.spatial.sparsifyFlag = false;
        
-    case 2
+    case 2 % Low sample rate (0.4 degrees)
         params.analysis.spatial.fieldSize = 12;
         params.analysis.spatial.sampleRate = 12/30;
         params.analysis.spatialModel = 'onegaussianFit';
@@ -49,7 +49,7 @@ switch optionNumber
         params.analysis.spatial.keepPixels = params.stim.instimwindow;
         params.analysis.spatial.sparsifyFlag = false;
         
-    case 4 % 
+    case 4 % Medium sample rate (0.3 degrees)
         params.analysis.spatial.fieldSize = 12;
         params.analysis.spatial.sampleRate = 12/40;
         params.analysis.spatialModel = 'onegaussianFit';
