@@ -1,4 +1,4 @@
-function model = tch_glm_fracridge(Y, X, fracAlpha)
+function model = glmFracRidge(Y, X, fracAlpha)
 % Apply a general linear model (GLM) with fractional ridge regression 
 % (minimizing the L2-norm) to data in Y using design matrix in X. This
 % function requires the toolbox fracridge: 

@@ -120,7 +120,7 @@ switch regressionType
              for n = 1:size(Xtrain,2)
                  if ~any(isnan(Xtrain(:,n,1))) % assuming that if one channel is nan, all are
                      % Regress predictions using fractional ridge regression
-                     lm = tch_glm_fracridge(Ytrain(:,n),squeeze(Xtrain(:,n,:)), alpha);
+                     lm = glmFracRidge(Ytrain(:,n),squeeze(Xtrain(:,n,:)), alpha);
                      lm.alphas = alpha;
                      
                      if useGPU
