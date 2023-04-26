@@ -11,16 +11,9 @@ end
 if ~isrow(n)
     n = n';
 end
-% stNonlin = @(x,n) 1./(1+exp(-(x.^n)));
+
 stNonlin = @(x,n) x.^n;
 Y = stNonlin(X,n);
-% 
-% Y = zeros(size(X));
-% for i=1:numel(n)
-%     Y(:,i,:,:) = bsxfun(@power,X(:,i,:,:),n(i));
-% end
-
-
 
 if verbose
     figure(101); clf; 
