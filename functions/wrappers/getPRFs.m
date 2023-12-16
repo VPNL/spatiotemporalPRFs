@@ -41,7 +41,7 @@ if ~isfield(params.analysis.spatial,'pRFModelType') || isempty(params.analysis.s
 end
 
 % Check for nuisance parameters
-if isfield(params.analysis.spatial,'lh')
+if isfield(params.analysis.spatial,'lh') && isfield(params.analysis.spatial.lh,'sigmaMajor')
     numVoxelsLeft = length(params.analysis.spatial.lh.sigmaMajor);
     % Assume circular pRFs if no sigma minor is defined
     if ~isfield(params.analysis.spatial.lh,'sigmaMinor')
@@ -55,7 +55,7 @@ else
 end
 
 % Same for right hemi
-if isfield(params.analysis.spatial,'rh')
+if isfield(params.analysis.spatial,'rh') && isfield(params.analysis.spatial.rh,'sigmaMajor')
     numVoxelsRight = length(params.analysis.spatial.rh.sigmaMajor);
     if ~isfield(params.analysis.spatial.rh,'sigmaMinor')
         params.analysis.spatial.rh.sigmaMinor = params.analysis.spatial.rh.sigmaMajor;
@@ -104,7 +104,8 @@ switch params.analysis.spatial.pRFModelType
         % to 1)
         if isfield(params.analysis.spatial,'lh') || isfield(params.analysis.spatial,'rh')
             for h = 1:length(hemis)
-                if ~isempty(params.analysis.spatial.(hemis{h}).sigmaSurround)
+                if isfield(params.analysis.spatial.(hemis{h}), 'sigmaSurround') && ...
+                        ~isempty(params.analysis.spatial.(hemis{h}).sigmaSurround)
                     rf = stGaussian2dDoG(...
                         params.analysis.spatial.(hemis{h}).X, ...
                         params.analysis.spatial.(hemis{h}).Y, ...
@@ -113,7 +114,9 @@ switch params.analysis.spatial.pRFModelType
                         params.analysis.spatial.(hemis{h}).theta, ...
                         params.analysis.spatial.(hemis{h}).x0, ...
                         params.analysis.spatial.(hemis{h}).y0);
-                elseif ~isempty(params.analysis.spatial.(hemis{h}).x0)
+                elseif isfield(params.analysis.spatial.(hemis{h}), 'x0') && ...
+                        ~isempty(params.analysis.spatial.(hemis{h}).x0)
+                    
                     rf = stGaussian2d(...
                         params.analysis.spatial.(hemis{h}).X, ...
                         params.analysis.spatial.(hemis{h}).Y, ...
@@ -128,7 +131,8 @@ switch params.analysis.spatial.pRFModelType
                 prfs = cat(2,prfs,rf);
             end
         else
-            if ~isempty(params.analysis.spatial.sigmaSurround)
+            if isfield(params.analysis.spatial, 'sigmaSurround') && ...
+                    ~isempty(params.analysis.spatial.sigmaSurround)
                 prfs = stGaussian2dDoG(...
                         params.analysis.spatial.X, ...
                         params.analysis.spatial.Y, ...
