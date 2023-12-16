@@ -32,16 +32,25 @@ end
 %% Then temporal
 % Get predicted pRF time series: convolve spatial pRF response
 % and temporal filter
-st_prfResponse = zeros(size(s_prfResponse,1),size(s_prfResponse,2), ...
+st_prfResponse = zeros(size(s_prfResponse,1),size(s_prfResponse,2), ... time x voxels x channels x stim
     length(linearPRFFilters.names),size(s_prfResponse,3)); 
 if  params.useGPU
     st_prfResponse = gpuArray(st_prfResponse);
 end
 % st_prfResponse => time X voxel X channel X run
-for n = 1:length(linearPRFFilters.names)
-    st_prfResponse(:,:,n,:) = convCutn(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
+if ndims(linearPRFFilters.temporal)==3 % If each voxel has it's own custom IRF, then we have to loop
+    for n = 1:length(linearPRFFilters.names)
+        for ii = 1:size(s_prfResponse,2)
+            tIRF = linearPRFFilters.temporal(:,n,ii);
+            tIRF = tIRF(~isnan(tIRF));
+            st_prfResponse(:,ii,n,:) = convCutn(s_prfResponse(:,ii), tIRF, size(s_prfResponse,1));
+        end
+    end
+else % If every voxel is subject to the same 3 IRF channels
+    for n = 1:length(linearPRFFilters.names)
+        st_prfResponse(:,:,n,:) = convCutn(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
+    end
 end
-
 % subplot(131); plot((squeeze(st_prfResponse(:,1,1,1)))); hold on;
 % subplot(132); plot((squeeze(st_prfResponse(:,1,1,2)))); hold on;
 % subplot(133); plot((squeeze(st_prfResponse(:,1,1,3)))); hold on;
