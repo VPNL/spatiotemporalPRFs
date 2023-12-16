@@ -4,7 +4,7 @@ function irf = tch_irfs(channel, tau, n1, n2, kappa, fs)
 % 
 % INPUT
 %   1) channel: 'S' (sustained) or 'T' (transient)
-%   2) tau: time constant of excitatory mechanism (ms)
+%   2) tau: time constant of excitatory mechanism (10 Hz, ms)
 %   3) n1: number of stages in excitatory mechanism
 %   4) n2: number of stages in inhibitory mechanism
 %   5) kappa: ratio of time constants for primary/secondary filters
