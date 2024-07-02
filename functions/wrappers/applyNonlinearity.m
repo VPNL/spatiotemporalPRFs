@@ -55,10 +55,30 @@ end
 % DCTS - divisive compressive temporal summation (Zhou et al. 2018 PLoS CB)
 if ismember(params.analysis.temporalModel,{'1ch-dcts','DN-ST'}) 
     params.analysis.nonlinearity = 'dcts';
- 
-    % Apply divisive normalization to pRF stimulus time series
-    nonLinearResponse = DNmodel(params.analysis.temporal.param, ...
-                                prfResponse, params.useGPU);
+    if params.useGPU
+        nonLinearResponse = zeros(size(prfResponse),'gpuArray');
+    else 
+        nonLinearResponse = zeros(size(prfResponse));
+    end
+    if length(params.analysis.temporal.param.tau1) > 1 &&  size(prfResponse,2) > 1
+        % We assume fs, shift and scale do not vary across pRFs within a
+        % visual area
+        p.fs = params.analysis.temporal.param.fs;
+        p.shift  = params.analysis.temporal.param.shift;
+        p.scale  = params.analysis.temporal.param.scale;
+        for n = 1:size(prfResponse,2)
+            p.tau1   = params.analysis.temporal.param.tau1(n);
+            p.weight = params.analysis.temporal.param.weight(n);
+            p.tau2   = params.analysis.temporal.param.tau2(n);
+            p.n      = params.analysis.temporal.param.n(n);
+            p.sigma  = params.analysis.temporal.param.sigma(n); 
+            % Apply divisive normalization to pRF stimulus time series
+            nonLinearResponse(:,n) = DNmodel(p, prfResponse(:,n), params.useGPU);
+        end
+    else
+        nonLinearResponse = DNmodel(params.analysis.temporal.param, ...
+            prfResponse, params.useGPU);
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
