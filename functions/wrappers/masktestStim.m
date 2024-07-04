@@ -1,16 +1,21 @@
 function stim = masktestStim(baseImg,seq,resampleSize)
+% Function to make test stimulus for stRet
 % 
+%   stim = masktestStim(baseImg,seq,resampleSize)
+%
+% Example:
 % userLoadFile = '/Users/insubkim/oak_home/spatiotemporal/experiments/stRet/data/subj01/session1/Stimuli/images_and_params_run01.mat';
 % fs = 1000;
-keepAllPoints = 1;
 % resampleSize = 61;
 % resampleSize = 101;
-% 
 % userStim = baseImg;
 % load(baseImgpath);
 % load(userLoadFile)
+%
+% Written by IK 2021 @ VPNL Stanford U
 
-
+% Set boolean for keeping all stimulus time points (instead of sparsify)
+keepAllPoints = 1;
 
 % resize image
 nImages = size(baseImg, 3);

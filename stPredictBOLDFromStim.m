@@ -3,9 +3,11 @@ function predictions = stPredictBOLDFromStim(params, stim)
 % stimulus array, using a spatiotemporal pRF model. This pRF model is used
 % in the following papers:
 %  * Characteristics of spatiotemporal population receptive fields across
-%      human visual streams. By Kim, Kupers, Grill-Spector (2023). 
+%      human visual streams. By Kim, Kupers, Grill-Spector (2024).
+%      J Neurosci. DOI: https://doi.org/10.1523/JNEUROSCI.0803-23.2023
 %  * Rethinking simultaneous suppression in visual cortex via compressive 
-%      spatiotemporal population receptive fields. By Kupers, Kim, Grill-Spector (2023).
+%      spatiotemporal population receptive fields. By Kupers, Kim, 
+%       Grill-Spector (2024). Nature Communications. DOI: XXX
 %   
 %
 % INPUTS:
@@ -43,6 +45,9 @@ function predictions = stPredictBOLDFromStim(params, stim)
 %               * hrf         : (double) vector or matrix with hemodynamic
 %                               response function(s) [time (ms) × voxels]
 %
+%
+% Written by IK and ERK 2021 @ VPNL Stanford U
+%
 %{
 % Example:
  barStim = zeros(101,101); barStim(50:70,:) = 1; 
@@ -51,9 +56,7 @@ function predictions = stPredictBOLDFromStim(params, stim)
  params = getExampleParams;
  predictions = stPredictBOLDFromStim(params,stim)
 %}
-%
-%
-% Written by IK and ERK 2021 @ VPNL Stanford U
+
 
 %% 0. Check input variables and print status
 tic

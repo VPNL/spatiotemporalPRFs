@@ -19,6 +19,8 @@ function params = getTemporalParams(params)
 % params.analysis.temporal.num_channels:    number of temporal channels
 %
 % [ISK] note: st_getTemporalAttributes is the previous function name
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
 
 %% Check if Constant file is there.
 

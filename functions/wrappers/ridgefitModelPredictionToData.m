@@ -1,7 +1,10 @@
-function lm = fitModelPredictionToDataWrapper(data, predictions, alpha, ...
+function lm = ridgefitModelPredictionToData(data, predictions, alpha, ...
         regressionType, offsetFlag)
-%% Fit model prediction to data at single voxel level
-
+% Function toFit model prediction to data at single voxel level
+%
+%   lm = ridgefitModelPredictionToData(data, predictions, alpha, ...
+%         regressionType, offsetFlag)
+%
 % INPUTS
 % data           : (double) matrix (time points x voxels)
 % predictions    : (double) array (time points x voxels x channels)
@@ -15,11 +18,15 @@ function lm = fitModelPredictionToDataWrapper(data, predictions, alpha, ...
 %
 % OUTPUTS
 % lm             : (struct) linear model 
-
+%
+% Written by ERK & ISK 2021 @ VPNL Stanford U
+%
+%% Check inputs
 numTimePoints = size(data,1);
 numVoxels     = size(data,2);
 numChannels   = size(predictions,3);
 
+% Preallocate space
 R2_full     = NaN(1,numVoxels);
 
 if crossvalBetaFlag
@@ -32,8 +39,10 @@ else
     B_full  = NaN(numVoxels,numChannels);
 end
 
+% Define normalization function of peak response height
 normMax = @(x) x./max(x);
 
+% Define data and prediction
 X = predictions;
 Y = data;
 
@@ -47,6 +56,7 @@ if offsetFlag
     X = cat(3,X,ones(size(X,1),size(X,2),1));
 end
 
+%% Start fitting!
 switch regressionType
     
     case 'OLS'

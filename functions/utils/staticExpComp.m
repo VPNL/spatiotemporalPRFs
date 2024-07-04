@@ -1,4 +1,17 @@
 function Y = staticExpComp(X, n, verbose)
+% Function to apply static nonlinearity (power-law) to pRF timeseries
+% 
+%   Y = staticExpComp(X, n, verbose)
+% 
+% INPUTS
+%   X           : (vector) predicted time series (1 x time points)
+%   n           : (scalar) power law exponent (n<1 implies comppression)
+%   verbose     : print debug figure or not
+%
+% OUTPUTS
+%   Y           : (double) output of compressed predicted time series  
+%
+% Written by ERK & ISK 2021 @ VPNL Stanford U
 
 if nargin < 3
     verbose = false;

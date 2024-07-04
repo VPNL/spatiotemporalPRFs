@@ -31,7 +31,8 @@ function [prfs, params] = getPRFs(params)
 % OUTPUT:
 % prfs    : (double) matrix with [x-pixels by y-pixels (in deg)] by nr of
 %               pRFs
-% Written by ERK 2021 @ VPNL Stanford U
+%
+% Written by ERK & ISK 2021 @ VPNL Stanford U
 
 %% Check inputs
 

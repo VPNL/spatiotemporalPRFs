@@ -16,7 +16,9 @@ function st_prfResponse = getPRFStimResponse(stim, linearPRFFilters, params)
 %                   Dimensions are time (ms) by number of pRFs by, 
 %                   corresponding to nr of neural channels,
 %                   by run
-                    
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
+
 %% First spatial
 % Get predicted pRF time series: inner product between spatial rf and 3D stim
 if  params.useGPU

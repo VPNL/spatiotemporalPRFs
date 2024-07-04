@@ -8,18 +8,19 @@ function [reluResponse, params] = applyReLU(prfResponse,params)
 % combine the odd and even transient functions.
 %
 % INPUTS
-% prfResponse       : arry with dimensions time x pRFs x filters
-% params            : struct with parameters, needs the following fields:
+%   prfResponse       : arry with dimensions time x pRFs x filters
+%   params            : struct with parameters, needs the following fields:
 %                       params.analysis.reluFlag = True, and will look for
 %                       defined slope: params.analysis.relu.slope
 %                       and threshold: params.analysis.relu.thresh
 % OUTPUTS
-% reluResponse      : (double) matrix or array with response after applying
+%   reluResponse      : (double) matrix or array with response after applying
 %                       the ReLU, with dimensions time x pRFs x filters
-% params            : struct with parameters, and if needed, updated fields
+%   params            : struct with parameters, and if needed, updated fields
 %                       for params.analysis.relu.slope and threshold
 %
-% 
+% Written by ERK & ISK 2021 @ VPNL Stanford U
+
 % define relu params
 if ~isfield(params.analysis, 'relu') || ...
         ~isfield(params.analysis.relu,'slope') || ...

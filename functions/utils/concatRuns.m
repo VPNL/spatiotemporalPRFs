@@ -1,9 +1,15 @@
 function output = concatRuns(input)
+% Function to permute and concatenate runs of fMRI time series
+%
+% INPUTS
+%   input       : (matrix or array) observed time series (time by voxels by unique stimuli by runs) 
+%   prediction  : (vector or matrix) predicted time series (time by runs by voxels) <-- double check          
+%
+% OUTPUTS
+%   output         : (double) coefficient of determination (R^2)
+%
+% Written by ISK 2021 @ VPNL Stanford U
 
-% input case 1) measurement * Voxel * channel * runs
-% input case 2) measurement * Voxel * runs
-% in either input cases, removes the last dimension (runs) and concats it
-% to the measurement dimension
 %% removes the last dimension and puts it back to 
 if ndims(input) == 4
     ordered_input = permute(input, [1 4 2 3]);
@@ -11,11 +17,8 @@ if ndims(input) == 4
 elseif ndims(input) == 3
     ordered_input = permute(input, [1 3 2]);
     output = reshape(ordered_input,[], size(input,2));
-elseif  ndims(input) == 2
+elseif  ndims(input) == 2 % only one run
     output = input;
 end
 
-
-%     output = reshape(input, ...
-%         [size(input,1)*size(input,4), size(input,2), size(input,3)]);
 end

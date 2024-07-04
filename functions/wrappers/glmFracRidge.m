@@ -10,14 +10,15 @@ function model = glmFracRidge(Y, X, fracAlpha)
 %   fracAlpha: fractions (between 0 and 1) to determine optimal alpha
 %   (hyperparameter that penalizes large betas)
 %
-% OUTPUT FIELDS
+% OUTPUTS
 %   betas: fitted linear model weights
 %   residual: error of model prediction for each time point
 %   stdevs: estimated standard deviation for each beta weight
 %   dof: degrees of freedom of the fitting
 %
-% Adapted from tch_glm (cstmodel)
-
+% Adapted from tch_glm (cstmodel) by A. Stigliani
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
 
 % check inputs
 if nargin < 2

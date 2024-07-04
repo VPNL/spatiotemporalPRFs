@@ -4,6 +4,7 @@ function RF = stGaussian2dDoG(X,Y,sigmaMajor,sigmaSurround,theta, x0,y0)
 %
 %  RF = stGaussian2dDoG(X,Y,sigmaMajor,sigmaMinor,theta,x0,y0, sigmaSurround);
 %
+% INPUTS
 %    X,Y        : Sample positions in deg
 %    sigmaMajor : standard deviation longest direction
 %    sigmaSurround : standard deviation of surround (assuming same x,y center) 
@@ -11,6 +12,11 @@ function RF = stGaussian2dDoG(X,Y,sigmaMajor,sigmaSurround,theta, x0,y0)
 %                 [default = 0];
 %    x0         : x-coordinate of center of RF [default = 0];
 %    y0         : y-coordinate of center of RF [default = 0];
+%
+% OUTPUTS:
+%    RF         : 2D Gaussian receptive field (xy by number of RFs)
+%
+% Written by IK and ERK 2021 @ VPNL Stanford U
 %
 % Example:
 % To make one rf:
@@ -22,8 +28,8 @@ function RF = stGaussian2dDoG(X,Y,sigmaMajor,sigmaSurround,theta, x0,y0)
 %    sigma = 5;  % Deg
 %    rf = pmGaussian2d(X,Y,sigma);
 %
-% fprintf('[%s]: Create pRFs.\n', mfilename)
 
+%% Check inputs
 if nargin ~= 7
     if ~exist('X', 'var') || isempty(X),
         error('Must define X grid');

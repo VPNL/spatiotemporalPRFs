@@ -1,38 +1,26 @@
 function [trial,nStim] = st_mkTrial(stimprm,fs)
-
+% 
 % function [stimulus, time] = st_fMRIStimulus(with0OrNot)
 
-% INPUT -------------------------------------------
-% stimprm: [variations X prms]
-%     prms = [on off trialDur framerate]
-%     on,        unit: nFrame
-%     off (isi), unit: nFrame
-%     trialDur,  unit: second
-%     framerate, unit: HZ
-%     
-
-
-% OUTPUT -------------------------------------------
-
-% trial : nTrial X time (ms)
-
-% History :
-
-%% Example
-
-
-%% Assess inputs
-
-% possibleInputs = {'with0', 'without0'};
-% assert(ismember(lower(with0OrNot), possibleInputs), 'Un-identifiable input.');
+% INPUTS:
+%   stimprm     : Stimulus struct [variations X prms]
+%     - prms    : [on off trialDur framerate]
+%           - on       : on duration (nFrame)
+%           - off      : isi (unit: nFrame)
+%           - trialDur : total trial duration (unit: second)
+%           - framerate : refreshrate of trial (unit: Hz)
+%   fs          : framerate of stimulus, unit: HZ
+%
+% OUTPUTS 
+%   trial       : nTrial X time (ms)
+%
+% Written by IK 2021 @ VPNL Stanford U
 
 %% Pre-defined variables
-
-% fs = 1000; %1KHz sample rate
 nStimulus = size(stimprm, 1);
 
 
-%% compute stimulus
+%% Compute stimulus
 trial = cell(nStimulus,1);
 
 for istim = 1 : nStimulus

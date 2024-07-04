@@ -13,8 +13,10 @@ function [predNeural, params] = getPredictedNeuralResponse(params, prfResponse)
 %              temporal.param (should be in the same order)
 %              * temporal.zeroPadPredNeuralFlag (bool): pad predicted
 %                neural response with zeros to a full TR.
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
 
-% Derive temporal sample rate and time axis
+%% Derive temporal sample rate and time axis
 dt = 1/params.analysis.temporal.fs;
 t  = dt : dt : size(prfResponse,1)/params.analysis.temporal.fs;
 

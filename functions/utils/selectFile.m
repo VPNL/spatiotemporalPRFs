@@ -1,14 +1,21 @@
 function outputFiles = selectFile(inputfiles,filter,InputFileDelimit)
+% Function to select pRF model fit file (?)
+% 
+%   outputFiles = selectFile(inputfiles,filter,InputFileDelimit)
+% 
+% INPUTS
+%   inputfiles      : (str) path to input files 
+%   filter          : (str) name to search for in files
+%   InputFileDelimit: (str) where to split file names (e.g., '/')
+%
+% OUTPUTS
+%   outputFiles     : (double) selected file names
+%
+% Written by ISK 2021 @ VPNL Stanford U
+%
 
 filter = convertCharsToStrings(filter);
-% rfiles = getAllFiles('./results/',sprintf('*table.mat'),1);
-% 
-% selectList = ["voxel2","noise"]; targetVoxel = [1 5 1 0.5 4.93];
-% 
-% selectList = ["voxel1","noise"]; targetVoxel = [1 -5 1 0.5 4.93];
 
-
-% fileName = getAllFiles('./Gray/MotionComp_RefScan1/010522/','*sFit.mat',2);
 idx = [];
 for ii= 1:length(inputfiles)
     s = strsplit(inputfiles{ii}, InputFileDelimit);

@@ -9,6 +9,7 @@ function [f, params] = get3DSpatiotemporalpRFs(params)
 % OUTPUT:
 % prfs    : (double) matrix with [x-pixels by y-pixels (in deg)] by nr of
 %               pRFs
+%
 % Written by ERK 2021 @ VPNL Stanford U
 
 %% Get spatial pRF filter

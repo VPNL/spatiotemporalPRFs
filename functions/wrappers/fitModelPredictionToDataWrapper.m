@@ -1,31 +1,36 @@
 function [lm, sumChannelPrediction] = ...
         fitModelPredictionToDataWrapper(data, predictions, varargin)
-%% Fit model prediction to data at single voxel level
+% Fit model prediction to data at single voxel level
+%
+%   [lm, sumChannelPrediction] = ...
+%         fitModelPredictionToDataWrapper(data, predictions, varargin)
+%
 % INPUTS 
-% data                  : (double) matrix with fMRI data (time points x
+%   data                  : (double) matrix with fMRI data (time points x
 %                           voxels) 
-% predictions           : (double) array with predicted BOLD data (time
+%   predictions           : (double) array with predicted BOLD data (time
 %                           points x voxels x channels)
-% [alpha]               : (double) can be an integer or a vector or empty. 
+%   [alpha]               : (double) can be an integer or a vector or empty. 
 %                           If defined, it will use that particular alpha, 
 %                           if empty, it will use a default range of alphas
 %                           logspace(-2,2,30).
-% [regressionType]      : (str) use 'OLS' for ordinary least squares
+%   [regressionType]      : (str) use 'OLS' for ordinary least squares
 %                           or 'fracridge' for fractional ridge regression
-% [kFolds]              : (int) number of crossvalidated folds to determine 
+%   [kFolds]              : (int) number of crossvalidated folds to determine 
 %                           best alpha (i.e. the one giving the highest R2),
 %                           when using ridge regression. Folds are within
 %                           run in a single voxel (for now).
 %
 % OUTPUTS
-% lm                    : (struct) linear model fit with fields; beta, R2,
+%   lm                    : (struct) linear model fit with fields; beta, R2,
 %                           alphas (hyperparameter for ridge regression), 
 %                           bestAlpha (choosen by splithalf-crossvalidation 
 %                           if wasn't defined), standard error, dof
 %                           (degrees of freedom)
-% sumChannelPrediction  : (double) matrix with scaled predictions (betas *
+%   sumChannelPrediction  : (double) matrix with scaled predictions (betas *
 %                           design matrix)
-% 
+%
+% Written by ERK & ISK 2021 @ VPNL Stanford U
 
 %% Parse inputs
 p = inputParser;

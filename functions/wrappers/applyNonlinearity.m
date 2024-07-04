@@ -17,7 +17,8 @@ function [nonLinearResponse, params] = applyNonlinearity(prfResponse,params)
 %                       voxels [by channels] 
 % params            : (struct) parameter struct with updated fields for
 %                       type of nonlinearity applied: params.analysis.nonlinearity
-
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %      SKIP NON LINEARITY     %

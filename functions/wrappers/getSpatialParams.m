@@ -22,7 +22,8 @@ function params = getSpatialParams(params,optionNumber)
 %                   window and we keep it to generate pRF responses. If a
 %                   pixel is false, it falls outside the stimulus window
 %                   and we remove it to save computational resources.
-
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
 %%
 % load default temporal params
 switch optionNumber

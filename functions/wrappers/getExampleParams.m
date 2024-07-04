@@ -1,6 +1,16 @@
 function params = getExampleParams()
 % Function to create example parameters to run spatiotemporal model
+%
+% INPUT:
+%   None
+%
+% OUTPUT:
+%   params    : (struct) struct with default, example pRF model parameters
+%               
+% Written by ERK & ISK 2021 @ VPNL Stanford U
+%
 
+%%
 params = struct();
 params.saveDataFlag             = true;
 params.stim.sparsifyFlag        = false;

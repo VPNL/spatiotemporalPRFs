@@ -1,10 +1,12 @@
 function [hrf,params] = getHRF(params)
-% Function to get HRF according to the params.analysis.hrf.type
+% Function to get HRF according to the params.analysis.hrf.type:
+% Options:
 %   1. 'spm'      : SPM HRF
 %   2. 'vista'    : vistasoft HRF
 %   3. 'library1' : Kendrick Kay's canonical HRF library
 %   4. 'library2' : Vistasoft's canonical HRF library
 %   5. 'opt'      : Use optimized HRF parameters for each voxel
+%
 % If 'hrf' fieldname does not exist in params.analysis, we default to spm
 % double gamma HRF.
 % 

@@ -1,6 +1,23 @@
 function params = getParamsSTPRF()
-% header info
+% Function to get additional, default spatiotemporal pRF model parameters 
 %
+%   params = getParamsSTPRF()
+%
+% INPUTS
+%   none
+%
+% OUTPUTS
+%   params  : (struct) default parameters, including:
+%             - params.spatialModel       : 'onegaussianFit'
+%             - params.temporalModel      : '1ch-glm'
+%             - params.analysis.pRFmodel  : {'st'};
+%             - params.analysis.spatial.option : 2;
+%             - params.analysis.keepAllPoints  : false;
+%             - params.analysis.sparsifyFlag   : true;
+%             - params.analysis.spatial & params.analysis.temporal defaultd
+%               
+%
+% Written by ISK 2021 @ VPNL Stanford U
 
 %% Parse inputs
 p = inputParser;

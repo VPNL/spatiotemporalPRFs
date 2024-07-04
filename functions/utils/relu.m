@@ -1,4 +1,19 @@
 function output = relu(input, varargin)
+% Function to apply linear rectifier, which removes negative numbers and
+% can scale max height of response
+% 
+% 	output = relu(input, varargin)
+% 
+% INPUT:
+%   input    : (vector or matrix)  pRF time series (time points by pRFs) 
+%   [slope]  : slope of RELU function, if empty, default = 1;
+%   [thresh] : threshold of RELU function, if empty, default = 0;
+%   [useGPU] : boolean to define if we use GPU arrays or not, default = false
+%
+% OUTPUT:
+%   output  : (vector or matrix)  rectified pRF time series (time points by pRFs)
+%
+% Written by ERK & ISK 2021 @ VPNL Stanford U
 
 % Check inputs
 if isempty(varargin)
@@ -32,15 +47,10 @@ else
 end
 
 % Keep points above threshold
-
 mask = bsxfun(@gt,input,thresh);
 
 output(mask) = input(mask);
 output = bsxfun(@times,slope,output);
-
-
-% mask = input>thresh;
-% output = slope.*output;
 
 
 return

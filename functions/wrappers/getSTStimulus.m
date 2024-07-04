@@ -23,6 +23,8 @@ function [stim,keepPixels] = getSTStimulus(params,stimulusNumber,stimFile)
 %
 % [ISK NOTE]: for more information check rmMakeStimulus.m get stimulus and
 % keep values
+%
+% Written by ERK & IK 2021 @ VPNL Stanford U
 
 if notDefined('stimFile')
     createFromStimFile = 0;
