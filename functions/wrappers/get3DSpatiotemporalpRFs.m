@@ -4,107 +4,143 @@ function [f, params] = get3DSpatiotemporalpRFs(params)
 %
 % INPUT:
 % params  : (struct) Params struct should have the following fields:
-%               tktktk
+%               params.saveDataFlag            
+%               params.recomputePredictionsFlag
+%               params.useGPU
+%               params.stim.sparsifyFlag
+%               params.stim.framePeriod (TR in seconds)
+%               params.analysis.reluFlag
+%               params.analysis.normNeuralChan
+%               params.analysis.normAcrossRuns
+%               params.analysis.predFile
+%               params.analysis.spatialModel
+%               params.analysis.temporalModel
+%               params.analysis.hrf.type
+%               params.analysis.zeroPadPredNeuralFlag
+%               params.analysis.spatial.x0
+%               params.analysis.spatial.y0
+%               params.analysis.spatial.sigmaMajor
+%               See "getSpatialParams.m", "getTemporalParams.m",
+%               "getExampleParams.m" for descriptions and details
 %
 % OUTPUT:
-% prfs    : (double) matrix with [x-pixels by y-pixels (in deg)] by nr of
-%               pRFs
+% f       : (struct) spatial and/or temporal pRF filters:
+%            * spatial: (double) 2D matrix: x,y-grid (deg) by nr of pRFs 
+% params  : (struct) same as input params, but with updated/added parameters
 %
 % Written by ERK 2021 @ VPNL Stanford U
+%
+% History:
+% 2024.12.10: Add flexibility for the nr of pRFs vs nr of provided
+% parameters.
 
-%% Get spatial pRF filter
+%% Get spatial pRF parameters
 if  ~isfield(params.analysis.spatial, 'values') || isempty(params.analysis.spatial.values)
     [prfs, params] = getPRFs(params);
 else
     prfs = params.analysis.spatial.values;
 end
 
+%% Check if nr of parameters match nr of expected pRFs to generate. 
+% If we only get one parameter value for either x, y, or sigma, we
+% replicate the parameter value for all the pRFs. 
+if size(prfs,2) ~= size(params.analysis.spatial.x0,2)
+    params.analysis.spatial.x0 = repmat(params.analysis.spatial.x0,[1,size(prfs,2)]);
+end
+if size(prfs,2) ~= size(params.analysis.spatial.y0,2)
+    params.analysis.spatial.y0 = repmat(params.analysis.spatial.y0,[1,size(prfs,2)]);
+end
+if size(prfs,2) ~= size(params.analysis.spatial.sigmaMajor,2)
+    params.analysis.spatial.sigmaMajor = repmat(params.analysis.spatial.sigmaMajor,[1,size(prfs,2)]);
+end
+if isfield(params.analysis.spatial, 'sigmaMinor') && size(prfs,2) ~= size(params.analysis.spatial.sigmaMinor,2)
+    params.analysis.spatial.sigmaMinor = repmat(params.analysis.spatial.sigmaMinor,[1,size(prfs,2)]);
+end
+if isfield(params.analysis.spatial, 'theta') && size(prfs,2) ~= size(params.analysis.spatial.theta,2)
+    params.analysis.spatial.theta = repmat(params.analysis.spatial.theta,[1,size(prfs,2)]);
+end
+
 %% Get spatial or temporal pRF filter
 switch params.analysis.temporalModel
     case {'3ch-stLN','CST'}
-        x = params.analysis.temporal.param;
-        if ~isfield(x,'tau_t')
-           x.tau_t = x.tau_s;              
+        
+        % If there is no transient time constant, we use the same time constant as sustained.
+        if ~isfield(params.analysis.temporal.param,'tau_t')
+           params.analysis.temporal.param.tau_t = params.analysis.temporal.param.tau_s;              
         end
-        f.temporal = NaN(5000,3,size(prfs,2));
-        for ii = 1:size(prfs,2)
-            x_n = struct('exponent',x.exponent(ii), ...
-                        'tau_s',x.tau_s(ii), ...
-                        'tau_t',x.tau_t(ii), ...
-                        'n1',x.n1, ...
-                        'n2',x.n2, ...
-                        'kappa', x.kappa, ...
-                        'fs', x.fs); 
+        
+        % check correspondance between nr of pRFs and defined params,
+        % don't loop if we use the same set of IRF params for all pRFs
+        if length(params.analysis.temporal.param.tau_s) == 1 && ...
+                length(params.analysis.temporal.param.tau_s) < size(prfs,2)
             
+            x_n = struct('exponent',params.analysis.temporal.param.exponent, ...
+                    'tau_s',params.analysis.temporal.param.tau_s, ...
+                    'tau_t',params.analysis.temporal.param.tau_t, ...
+                    'n1',params.analysis.temporal.param.n1, ...
+                    'n2',params.analysis.temporal.param.n2, ...
+                    'kappa', params.analysis.temporal.param.kappa, ...
+                    'fs', params.analysis.temporal.param.fs);
+            
+            % Create temporal impulse response functions
             f_n = createTemporalIRFs_sustained_transient(x_n);
-            f.temporal(1:size(f_n.temporal,1),:,ii) = f_n.temporal;
-            if ii == 1; f.scaleFactorNormSumTransChan = f_n.scaleFactorNormSumTransChan; end
+           
+            % Add scaleFactorNormSumTransChan param to general struct
+            f.scaleFactorNormSumTransChan = f_n.scaleFactorNormSumTransChan;
+            
+            % Inset the IRF into the "temporal" field 
+            f.temporal = f_n.temporal; % time x channels x num prfs.
+        
+        else % loop over voxels
+            
+            for ii = 1:size(prfs,2)
+                % Grab single pRF params to make temporal IRF
+                x_n = struct('exponent',params.analysis.temporal.param.exponent(ii), ...
+                    'tau_s',params.analysis.temporal.param.tau_s(ii), ...
+                    'tau_t',params.analysis.temporal.param.tau_t(ii), ...
+                    'n1',params.analysis.temporal.param.n1(ii), ...
+                    'n2',params.analysis.temporal.param.n2(ii), ...
+                    'kappa', params.analysis.temporal.param.kappa(ii), ...
+                    'fs', params.analysis.temporal.param.fs);
+                
+                % Create temporal impulse response functions
+                f_n = createTemporalIRFs_sustained_transient(x_n);
+                
+                % Add scaleFactorNormSumTransChan param to general struct
+                if ii == 1
+                    f.scaleFactorNormSumTransChan = f_n.scaleFactorNormSumTransChan;
+                    
+                    % Preallocate space.
+                    f.temporal = zeros(size(f_n.temporal,1),3,size(prfs,2)); % time x channels x num prfs.
+                end
+                
+                % Inset the IRF into the "temporal" field
+                f.temporal(1:size(f_n.temporal,1),:,ii) = f_n.temporal;
+            end
         end
-        f.names = {'sustained','transient_odd','transient_even'};
-        % Get nr of filters
-%         nfilters = length(f.names);
-        
-        %%%% commented out for now. To reduce computation time. %%%%%%%%
-
-        % reshape pRFs from 1D to 2D
-%         prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
-        
-        
-        % Convolve spatial and temporal filter to get spatiotemporal filter
-        %         f.spatiotemporal = zeros(size(prf2D,1),size(prf2D,2),nfilters);
-        
-        % commented out for now. To reduce computation time.
-        %         for ii = 1:size(prf2D,3)
-        %
-        %             % Get single spatial pRF
-        %             currSpatialPRF = prf2D(:,:,ii);
-        %
-        %             % Convolve spatial pRF with each timepoint of temporal IRF
-        %             for ff = 1:nfilters
-        %                 currTemporalFilter = f.temporal(:,ff);
-        %                 for tt = 1:length(currTemporalFilter)
-        %                     tmp = convCut2(currSpatialPRF,currTemporalFilter(tt),size(currSpatialPRF,1));
-        %                     f.spatiotemporal(:,:,tt,ff) = tmp;
-        %                 end
-        %             end
-        %         end
+        f.names = {'sustained','transient_on','transient_off'};
         f.spatial.prfs = prfs;
-    case '2ch-stLN'
-        x = params.analysis.temporal.param;
-        if ~isfield(x,'tau_t')
-           x.tau_t = x.tau_s;              
-        end
-        % Create temporal IRFs for sustained and transient channel
-        irfSustained = tch_irfs('S', x.tau_s, x.n1, x.n2, x.kappa, x.fs);
-        irfTransient = tch_irfs('T', x.tau_t, x.n1, x.n2, x.kappa, x.fs);
         
-        f.temporal = zeros(max([length(irfSustained),length(irfTransient)]),3);
+        %%%% For visual debugging %%%%%%%% commented out for now to reduce computation time.
+        % % reshape pRFs from 1D to 2D 
+        % prf2D = reshape(prfs,sqrt(size(prfs,1)),sqrt(size(prfs,1)), []);
         
-        % Normalize such that area under the curve sums to 1
-        f.temporal(1:length(irfSustained),1) = normSum(irfSustained);
-        
-        % For transient nrf, we do this separately for positive and negative parts:
-        % First find indices
-        pos_idx = irfTransient>=0;
-        neg_idx = irfTransient<0;
-        
-        scf = 1;% 0.5; % sum of area under each pos/neg curve
-        % Get positive part and normalize sum
-        irfT_pos = irfTransient(pos_idx);
-        irfT_pos = scf*normSum(irfT_pos);
-    
-        % Combine positive and negative parts
-        nrfT2 = NaN(size(irfTransient));
-        nrfT2(pos_idx) = irfT_pos;
-        nrfT2(neg_idx) = irfT_neg;
-        
-        f.temporal(1:length(nrfT2),2) = nrfT2;
-        f.names = {'sustained','transient_odd','transient_even'};
-        f.scaleFactorNormSumTransChan = scf;
-        clear nrfT2 irfT_pos irfT_neg
-  
-        f.spatial.prfs = prfs;
-
+        % % Convolve spatial and temporal filter to get spatiotemporal filter
+        % f.spatiotemporal = zeros(size(prf2D,1),size(prf2D,2),nfilters);
+        % for ii = 1:size(prf2D,3)
+        %
+        %   % Get single spatial pRF
+        %   currSpatialPRF = prf2D(:,:,ii);
+        %
+        %   % Convolve spatial pRF with each timepoint of temporal IRF
+        %   for ff = 1:nfilters
+        %       currTemporalFilter = f.temporal(:,ff);
+        %       for tt = 1:length(currTemporalFilter)
+        %           tmp = convCut2(currSpatialPRF,currTemporalFilter(tt),size(currSpatialPRF,1));
+        %           f.spatiotemporal(:,:,tt,ff) = tmp;
+        %       end
+        %    end
+        % end
         
     case {'1ch-dcts','DN-ST'}
         % Just keep spatial filter for now
