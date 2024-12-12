@@ -2,11 +2,13 @@
 Code repository to reconstruct, fit, and use spatiotemporal pRF models.
 
 This code is used in the following two papers:
-* Characteristics of spatiotemporal population receptive fields across human visual streams
-by Insub Kim, Eline Kupers, and Kalanit Grill-Spector [add link to paper] 
+1. **Characterizing Spatiotemporal Population Receptive Fields in Human Visual Cortex with fMRI**
+by Insub Kim, Eline R. Kupers, Garikoitz Lerma-Usabiaga and Kalanit Grill-Spector (2024)
+_Journal of Neuroscience_, 44(2) e0803232023; https://doi.org/10.1523/JNEUROSCI.0803-23.2023
 
-* Rethinking simultaneous suppression in visual cortex via compressive spatiotemporal population receptive fields
-by Eline Kupers, Insub Kim, and Kalanit Grill-Spector [add link to paper]
+2. **Rethinking simultaneous suppression in visual cortex via compressive spatiotemporal population receptive fields.**
+by Eline R. Kupers, Insub Kim, and Kalanit Grill-Spector (2024)
+_Nature Communications_, 15, 6885. https://doi.org/10.1038/s41467-024-51243-7
 
 ## Overview
 * stPRFsRootPath.m        : function to define root path
@@ -30,12 +32,12 @@ by Eline Kupers, Insub Kim, and Kalanit Grill-Spector [add link to paper]
     * HRF
     * params
 
-
-
 ## Folder organization
 * functions
   - external
   - utils
   - wrappers
+  - example
 
-## Example: 
+## Example:
+* run example/s_simpleTutorial.m!
