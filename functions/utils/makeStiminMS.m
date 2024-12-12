@@ -86,10 +86,11 @@ function params = makeStiminMS(params,id)
 % stimulus presentation code like 'ret'. Since those structures already
 % exist, we use themshuff1.nii.gz without modification.
 %
-% 2008/09 JW: Wrote it.
+% Code legacy:
+% * Vistasoft: 2008/09 JW: Wrote it.
+% * stRet: 2021 EK/IK added spatiotemporal retinotopy ms-upsampling options
 
-
-
+%% Check inputs
 if notDefined('params')
     error('[%s]: Need params', mfilename);
 end

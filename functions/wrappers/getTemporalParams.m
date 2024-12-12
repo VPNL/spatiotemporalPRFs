@@ -9,8 +9,13 @@ function params = getTemporalParams(params)
 % temporal parameters are loaded.
 %
 % INPUT:
-% params.analysis.temporalModel: '1ch-dcts', '2ch-exp-sig','1ch-glm'
-%
+% params.analysis.temporalModel:  Type of temporal model. Choose from:
+%                                  - '1ch-dcts' or 'DN-ST':  1-channel Delayed normalization model (Zhou et al. 2019. PLoS CB)
+%                                  - '2ch-exp-sig': 2-channel Exponent-sigmoidal model, with a sustained and transient channel (Stigliani et al. 2019 PLoS CB)
+%                                  - '1ch-glm' or 'spatial: 1-channel Linear model (basically a spatial-only model with a box car, no nonlinearities). 
+%                                  - '3ch-stLN' or 'CST': 3-channel Linear-nonlinear model, with a sustained, transient-odd, transient-even channel (Kim et al. 2024 JNeurosci)
+%                                  - 'Adelson-Bergen': spatiotemporal motion energy model (even/uneven paired gabor filter + exponential)
+%                                     as described by Adelson & Bergen in 1985 JOSAA paper
 % OUTPUT:
 % params.analysis.temporal.fields:          parameter names
 % params.analysis.temporal.temporal_param:  parameter values

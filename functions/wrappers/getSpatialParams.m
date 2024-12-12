@@ -1,17 +1,17 @@
 function params = getSpatialParams(params,optionNumber)
 %% Get getSpatialParams
-
+%
 % Grabs default temporal params for each model (params.analysis.temporalModel) 
-
+%
 % The function first checks if there is a Constant file (user-defined temporal parameter values).
 % if the function does not exist, default temporal parameters are loaded
-
-% input:
+%
+% INPUT:
 % params: params to be updated
 % optionNumber: pre-defined bundles of options
-
-% output:
-% %         * params.analysis.spatial.fieldSize  - (int) radius of FoV in deg, assuming square FoV
+%
+% OUTPUT:
+%           * params.analysis.spatial.fieldSize  - (int) radius of FoV in deg, assuming square FoV
 %           * params.analysis.spatial.sampleRate - (int) nr of grid points for entire FoV
 %           * params.analysis.spatial.pRFModelType - (str) define if you want to use
 %                  vistasoft's default 'unitHeight', or PRFModel 'unitVolume'

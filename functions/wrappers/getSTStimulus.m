@@ -26,6 +26,7 @@ function [stim,keepPixels] = getSTStimulus(params,stimulusNumber,stimFile)
 %
 % Written by ERK & IK 2021 @ VPNL Stanford U
 
+%% Check inputs
 if notDefined('stimFile')
     createFromStimFile = 0;
 end

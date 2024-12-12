@@ -53,6 +53,8 @@ else % If every voxel is subject to the same 3 IRF channels
         st_prfResponse(:,:,n,:) = convCutn(s_prfResponse, linearPRFFilters.temporal(:,n), size(s_prfResponse,1));
     end
 end
+
+% % For visual debugging
 % subplot(131); plot((squeeze(st_prfResponse(:,1,1,1)))); hold on;
 % subplot(132); plot((squeeze(st_prfResponse(:,1,1,2)))); hold on;
 % subplot(133); plot((squeeze(st_prfResponse(:,1,1,3)))); hold on;

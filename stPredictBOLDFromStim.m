@@ -8,7 +8,9 @@ function predictions = stPredictBOLDFromStim(params, stim)
 %  * Rethinking simultaneous suppression in visual cortex via compressive 
 %      spatiotemporal population receptive fields. By Kupers, Kim, 
 %       Grill-Spector (2024). Nature Communications. DOI: XXX
-%   
+% 
+% TOOLBOX DEPENDENCIES: 
+% * Vistasoft: https://github.com/vistalab/vistasoft
 %
 % INPUTS:
 % params      : (struct) list of stored parameters, including
