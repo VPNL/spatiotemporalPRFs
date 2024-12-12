@@ -44,13 +44,13 @@ end
 %% Check if nr of parameters match nr of expected pRFs to generate. 
 % If we only get one parameter value for either x, y, or sigma, we
 % replicate the parameter value for all the pRFs. 
-if size(prfs,2) ~= size(params.analysis.spatial.x0,2)
+if isfield(params.analysis.spatial, 'x0') && size(prfs,2) ~= size(params.analysis.spatial.x0,2)
     params.analysis.spatial.x0 = repmat(params.analysis.spatial.x0,[1,size(prfs,2)]);
 end
-if size(prfs,2) ~= size(params.analysis.spatial.y0,2)
+if isfield(params.analysis.spatial, 'y0') && size(prfs,2) ~= size(params.analysis.spatial.y0,2)
     params.analysis.spatial.y0 = repmat(params.analysis.spatial.y0,[1,size(prfs,2)]);
 end
-if size(prfs,2) ~= size(params.analysis.spatial.sigmaMajor,2)
+if isfield(params.analysis.spatial, 'sigmaMajor') && size(prfs,2) ~= size(params.analysis.spatial.sigmaMajor,2)
     params.analysis.spatial.sigmaMajor = repmat(params.analysis.spatial.sigmaMajor,[1,size(prfs,2)]);
 end
 if isfield(params.analysis.spatial, 'sigmaMinor') && size(prfs,2) ~= size(params.analysis.spatial.sigmaMinor,2)
